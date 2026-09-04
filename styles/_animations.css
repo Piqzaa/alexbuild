@@ -1,0 +1,100 @@
+/* ============================================
+   ANIMATIONS — AlexBuild
+   Règle non-négociable : tout est visible par défaut.
+   Les animations ne se déclenchent QUE quand
+   prefers-reduced-motion: no-preference
+   ============================================ */
+
+/* ============================================
+   FALLBACK SANS JS — Progressive enhancement
+   Si le JS ne charge pas, tout reste lisible.
+   ============================================ */
+body.no-js .reveal,
+body.no-js .hero__title-char {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Glow reste visible et statique sans JS */
+body.no-js .hero__glow {
+  --mouse-x: 50%;
+  --mouse-y: 40%;
+}
+
+/* État par défaut : tout visible, pas de transform */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.hero__title-char {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Animations (reduced-motion safe) ---- */
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* Reveal au scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Stagger delay */
+  .reveal[data-delay="1"] { transition-delay: 0.08s; }
+  .reveal[data-delay="2"] { transition-delay: 0.16s; }
+  .reveal[data-delay="3"] { transition-delay: 0.24s; }
+  .reveal[data-delay="4"] { transition-delay: 0.32s; }
+
+  /* Hero title — lettres */
+  .hero__title-char {
+    opacity: 0;
+    transform: translateY(16px);
+    display: inline-block;
+    transition: opacity 0.35s var(--ease-smooth), transform 0.35s var(--ease-smooth);
+  }
+
+  .hero__title-char.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---- Pas d'animation si reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Glow reste statique au centre */
+  .hero__glow {
+    --mouse-x: 50%;
+    --mouse-y: 40%;
+  }
+
+  /* Vidéo reste en lecture (c'est un fond, pas une animation de contenu) */
+  .hero__video {
+    /* La vidéo continue — c'est un fond décoratif, pas une animation de contenu */
+  }
+}

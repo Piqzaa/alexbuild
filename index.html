@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AlexBuild — Audit, refonte et création de sites web pour artisans et commerçants à Strasbourg. Votre prochain client vous cherche sur Google.">
+  <title>AlexBuild — Sites web qui ramènent des clients</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/main.css">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+
+  <!-- Progressive enhancement : sans JS, tout reste visible -->
+  <script>document.body.classList.replace('no-js','js')</script>
+</head>
+<body class="no-js">
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav" role="navigation" aria-label="Navigation principale">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo">Alex<span>Build</span></a>
+
+      <div class="nav__links">
+        <a href="#services">Services</a>
+        <a href="#realisations">Réalisations</a>
+        <a href="#processus">Comment ça marche</a>
+        <a href="#contact">Contact</a>
+      </div>
+
+      <a href="#contact" class="nav__cta">Appel gratuit</a>
+
+      <button class="nav__hamburger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Menu mobile -->
+    <div class="nav__mobile" id="mobile-menu" role="dialog" aria-label="Menu de navigation">
+      <a href="#services">Services</a>
+      <a href="#realisations">Réalisations</a>
+      <a href="#processus">Comment ça marche</a>
+      <a href="#contact">Contact</a>
+      <a href="#contact" class="nav__mobile-cta">Appel gratuit</a>
+    </div>
+  </nav>
+
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <video class="hero__video" autoplay muted loop playsinline poster="assets/hero-poster.jpg" aria-hidden="true">
+      <source src="assets/hero-smoke.mp4" type="video/mp4">
+    </video>
+    <div class="hero__overlay"></div>
+    <div class="hero__glow" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <div class="hero__content">
+        <div class="hero__badge">Basé à Strasbourg — missions partout en France</div>
+
+        <h1 class="hero__title">Votre prochain client vous cherche sur Google. Est-ce qu'il vous trouve ?</h1>
+
+        <p class="hero__subtitle">
+          Audit, refonte et création de sites web pour artisans et commerçants.
+          Pas de jargon technique. Des résultats concrets qui remplissent votre planning.
+        </p>
+
+        <div class="hero__actions">
+          <a href="#contact" class="btn-primary">Réserver mon appel diagnostic gratuit</a>
+          <a href="#services" class="btn-ghost">Découvrir les services</a>
+        </div>
+      </div>
+
+      <div class="hero__visual">
+        <div class="hero__card">
+          <div class="hero__card-title">Résultats concrets</div>
+          <div class="hero__stats">
+            <div class="hero__stat">
+              <div class="hero__stat-value">+40%</div>
+              <div class="hero__stat-label">de visibilité locale en moyenne</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-value">3 sem</div>
+              <div class="hero__stat-label">délai moyen de livraison</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-value">100%</div>
+              <div class="hero__stat-label">adapté mobile</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-value">0</div>
+              <div class="hero__stat-label">jargon technique</div>
+            </div>
+          </div>
+          <div class="hero__card-cta">
+            <strong>Audit offert</strong> pour les premiers contacts — 15 min pour identifier ce qui vous freine.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ PROBLÈME ============ -->
+  <section id="probleme" class="problem section--light">
+    <div class="container">
+      <div class="problem__grid">
+        <div class="problem__content reveal">
+          <div class="section-title">
+            <h2>Ce qui vous fait perdre des clients</h2>
+            <hr class="separator">
+            <p>La plupart des artisans ont un site qui leur ressemble peu — ou pas de site du tout. Le résultat : les clients potentiels tombent sur un concurrent avant de vous trouver.</p>
+          </div>
+
+          <div class="problem__points">
+            <div class="problem__point reveal" data-delay="1">
+              <div class="problem__point-icon">⏱</div>
+              <div class="problem__point-text">
+                <h3>Un site trop lent</h3>
+                <p>Plus de 53% des visiteurs quittent un site qui met plus de 3 secondes à charger. Sur mobile, c'est encore plus critique.</p>
+              </div>
+            </div>
+
+            <div class="problem__point reveal" data-delay="2">
+              <div class="problem__point-icon">📱</div>
+              <div class="problem__point-text">
+                <h3>Pas adapté au mobile</h3>
+                <p>Vos clients cherchent sur leur téléphone. Un site qui ne s'affiche pas correctement = une recommandation en moins.</p>
+              </div>
+            </div>
+
+            <div class="problem__point reveal" data-delay="3">
+              <div class="problem__point-icon">🔍</div>
+              <div class="problem__point-text">
+                <h3>Invisible sur Google</h3>
+                <p>Sans SEO local optimisé, votre site n'apparaît même pas quand quelqu'un cherche "boulanger près de chez moi".</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem__visual reveal">
+          <div class="problem__card">
+            <div class="problem__card-header">Score-type d'un site artisan</div>
+            <div class="problem__card-item">
+              <div class="problem__card-check problem__card-check--fail">✕</div>
+              <span>Vitesse mobile : 23/100</span>
+            </div>
+            <div class="problem__card-item">
+              <div class="problem__card-check problem__card-check--fail">✕</div>
+              <span>Adapté mobile : non</span>
+            </div>
+            <div class="problem__card-item">
+              <div class="problem__card-check problem__card-check--fail">✕</div>
+              <span>SEO local : absent</span>
+            </div>
+            <div class="problem__card-item">
+              <div class="problem__card-check problem__card-check--fail">✕</div>
+              <span>Tunnel de contact : caché</span>
+            </div>
+            <div class="problem__card-item">
+              <div class="problem__card-check problem__card-check--pass">✓</div>
+              <span>Contenu : présent (mais invisible)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ SERVICES ============ -->
+  <section id="services" class="services">
+    <div class="container">
+      <div class="section-title reveal">
+        <h2>Un diagnostic d'abord, des solutions ensuite</h2>
+        <hr class="separator">
+        <p>On ne vous vend pas "un site". On identifie d'abord ce qui fait fuir vos visiteurs, puis on corrige.</p>
+      </div>
+
+      <!-- Appel diagnostic — banner spécial -->
+      <div class="service-banner reveal" data-delay="1">
+        <div class="service-banner__content">
+          <h3>Appel diagnostic gratuit</h3>
+          <p>15-20 minutes en visio ou au téléphone. On identifie vos problèmes principaux, sans engagement.</p>
+        </div>
+        <a href="#contact" class="btn-primary">Réserver maintenant</a>
+      </div>
+
+      <div class="services__grid">
+        <!-- Audit -->
+        <div class="service-card reveal" data-delay="1">
+          <div class="service-card__price">100 – 150 €</div>
+          <h3>Audit détaillé</h3>
+          <p>Un rapport PDF priorisé qui explique exactement ce qui freine vos visiteurs : vitesse, mobile, SEO local, tunnel de contact. Chaque point est classé par urgence d'action.</p>
+          <a href="#contact" class="service-card__link">Demander un audit</a>
+        </div>
+
+        <!-- Refonte -->
+        <div class="service-card service-card--highlight reveal" data-delay="2">
+          <div class="service-card__price">300 – 800 €</div>
+          <h3>Refonte ciblée</h3>
+          <p>On corrige précisément ce que l'audit a identifié. Pas de refonte complète inutile — juste ce qui vous fait perdre des clients. Résultat mesurable.</p>
+          <a href="#contact" class="service-card__link">Parler de votre projet</a>
+        </div>
+
+        <!-- Création -->
+        <div class="service-card service-card--devis reveal" data-delay="3">
+          <div class="service-card__badge">Sur devis</div>
+          <h3>Création de site</h3>
+          <p>Un site pensé pour convertir vos visiteurs en clients. Design sur-mesure, optimisé mobile et local, avec un tunnel de contact clair. Chaque projet est unique.</p>
+          <a href="#contact" class="service-card__link">Discuter de votre projet</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ RÉALISATIONS ============ -->
+  <section id="realisations" class="portfolio section--light">
+    <div class="container">
+      <div class="section-title reveal">
+        <h2>Ils nous font confiance</h2>
+        <hr class="separator">
+        <p>Des projets concrets pour des clients comme vous. Pas de démos techniques — des résultats qui remplissent des plannings.</p>
+      </div>
+
+      <div class="portfolio__grid">
+        <!-- Vite & Gourmand — featured -->
+        <div class="portfolio-card portfolio-card--featured reveal">
+          <div class="portfolio-card__visual">
+            <div class="portfolio-card__icon">🍽</div>
+          </div>
+          <div class="portfolio-card__body">
+            <div class="portfolio-card__type">Restauration</div>
+            <h3>Vite & Gourmand</h3>
+            <p>Traiteur et restauration rapide. Problème : pas de visibilité locale, les clients ne trouvaient pas le menu en ligne. Solution : site vitrine avec commande intégrée, SEO local optimisé pour "traiteur Strasbourg".</p>
+          </div>
+        </div>
+
+        <!-- MyPetPuzzle -->
+        <div class="portfolio-card reveal" data-delay="1">
+          <div class="portfolio-card__visual">
+            <div class="portfolio-card__icon">🧩</div>
+          </div>
+          <div class="portfolio-card__body">
+            <div class="portfolio-card__type">E-commerce</div>
+            <h3>MyPetPuzzle</h3>
+            <p>Puzzles personnalisés avec photo de animal. Problème : site existant lent et non mobile. Solution : refonte ciblée — vitesse x3, taux de conversion +25%.</p>
+          </div>
+        </div>
+
+        <!-- Jobflow -->
+        <div class="portfolio-card reveal" data-delay="2">
+          <div class="portfolio-card__visual">
+            <div class="portfolio-card__icon">📊</div>
+          </div>
+          <div class="portfolio-card__body">
+            <div class="portfolio-card__type">Outil sur-mesure</div>
+            <h3>Jobflow</h3>
+            <p>CRM interne pour équipe de terrain. Problème : outil existant illisible sur mobile. Solution : application web responsive, pensée pour être utilisée sur chantier.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ PROCESSUS ============ -->
+  <section id="processus" class="process">
+    <div class="container">
+      <div class="section-title reveal">
+        <h2>Comment ça marche</h2>
+        <hr class="separator">
+        <p>Trois étapes claires. Pas de surprise, pas de jargon.</p>
+      </div>
+
+      <div class="process__timeline">
+        <div class="process__step reveal" data-delay="1">
+          <div class="process__number">1</div>
+          <h3>L'appel diagnostic</h3>
+          <p><strong>15-20 minutes</strong> en visio ou au téléphone. On discute de votre activité, de vos clients, et de ce qui vous freine en ligne. Gratuit, sans engagement.</p>
+        </div>
+
+        <div class="process__step reveal" data-delay="2">
+          <div class="process__number">2</div>
+          <h3>L'audit détaillé</h3>
+          <p>Un <strong>rapport PDF priorisé</strong> qui montre exactement où se trouvent les problèmes : vitesse, mobile, SEO, contact. Chaque point est classé par ordre de priorité.</p>
+        </div>
+
+        <div class="process__step reveal" data-delay="3">
+          <div class="process__number">3</div>
+          <h3>La solution</h3>
+          <p>On implémente ce que l'audit recommande. <strong>Refonte ciblée</strong> ou <strong>création complète</strong> — on vous explique tout avant de commencer. Vous validez à chaque étape.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="contact section--light">
+    <div class="container">
+      <div class="section-title reveal">
+        <h2> Parlons de votre projet</h2>
+        <hr class="separator">
+        <p>Un premier appel gratuit pour comprendre votre situation. Pas de obligation, pas de jargon.</p>
+      </div>
+
+      <div class="contact__grid">
+        <form class="contact__form reveal" action="#" method="post">
+          <div class="form-group">
+            <label for="name">Votre nom</label>
+            <input type="text" id="name" name="name" placeholder="Jean Dupont" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Votre email</label>
+            <input type="email" id="email" name="email" placeholder="jean@moncommerce.fr" required>
+          </div>
+
+          <div class="form-group">
+            <label for="activity">Votre activité</label>
+            <select id="activity" name="activity" required>
+              <option value="" disabled selected>Sélectionnez votre domaine</option>
+              <option value="alimentation">Alimentation / Restauration</option>
+              <option value="artisan">Artisan du bâtiment</option>
+              <option value="beaute">Beauté / Bien-être</option>
+              <option value="commerce">Commerce de détail</option>
+              <option value="services">Services aux particuliers</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="message">Votre message <span style="color: #9CA3AF; font-weight: 400;">(optionnel)</span></label>
+            <textarea id="message" name="message" placeholder="Décrivez-moi votre situation en quelques mots..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary">Envoyer ma demande</button>
+        </form>
+
+        <div class="contact__infos reveal" data-delay="1">
+          <div class="contact__info-highlight">
+            <h3>Premier appel gratuit</h3>
+            <p>15-20 minutes en visio ou au téléphone. On identifie vos problèmes principaux, sans engagement et sans facture.</p>
+          </div>
+
+          <div class="contact__info-block">
+            <h3>Email</h3>
+            <p><a href="mailto:dev@alexbuild.fr">dev@alexbuild.fr</a></p>
+          </div>
+
+          <div class="contact__info-block">
+            <h3>Localisation</h3>
+            <p>Basé à Strasbourg. Missions possibles dans toute la France, en présentiel ou à distance.</p>
+          </div>
+
+          <div class="contact__map">
+            <span>Strasbourg, France</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <div class="footer__brand-name">Alex<span>Build</span></div>
+          <p>Sites web qui ramènent des clients. Audit, refonte et création pour artisans et commerçants.</p>
+        </div>
+
+        <div class="footer__links">
+          <a href="#services">Services</a>
+          <a href="#realisations">Réalisations</a>
+          <a href="#processus">Comment ça marche</a>
+          <a href="#contact">Contact</a>
+          <a href="/portfolio">Portfolio dev</a>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <div class="footer__copy">© 2024 AlexBuild — Strasbourg, France</div>
+        <div class="footer__legal">
+          <a href="#">Mentions légales</a>
+          <a href="#">Politique de confidentialité</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- JS -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

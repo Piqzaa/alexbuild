@@ -1,0 +1,34 @@
+:root {
+  /* Palette — AlexBuild "Atelier de précision" */
+  --color-ink: #1C1A1E;
+  --color-ink-light: #252328;
+  --color-laiton: #C4956A;
+  --color-laiton-glow: #D4A87A;
+  --color-parchemin: #F5F3EE;
+  --color-parchemin-dark: #E8E4DC;
+  --color-text-light: #E8E4DF;
+  --color-text-dark: #2D2A26;
+  --color-text-muted: #9EA3AB;
+  --color-border-subtle: #353236;
+
+  /* Typographie */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Echelle mobile-first */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+
+  /* Breakpoints (pour référence, utilisés en media queries) */
+  --bp-tablet: 768px;
+  --bp-desktop: 1024px;
+  --bp-wide: 1280px;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}

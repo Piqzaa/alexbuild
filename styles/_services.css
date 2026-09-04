@@ -1,0 +1,179 @@
+.services {
+  background-color: var(--color-ink);
+  position: relative;
+}
+
+/* Layout irrégulier — largeurs différentes */
+.services__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background-color: var(--color-border-subtle);
+  border: 1px solid var(--color-border-subtle);
+}
+
+@media (min-width: 768px) {
+  .services__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .services__grid {
+    grid-template-columns: 1.3fr 1fr 1fr;
+  }
+}
+
+/* Service card — base: structure éditoriale */
+.service-card {
+  position: relative;
+  background-color: var(--color-ink);
+  padding: var(--space-lg);
+  transition: background-color 0.3s var(--ease-out);
+}
+
+.service-card:hover {
+  background-color: var(--color-ink-light);
+}
+
+/* Pas de gradient animé — un trait cuivre statique en haut */
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--space-lg);
+  width: 32px;
+  height: 2px;
+  background: var(--color-laiton);
+}
+
+/* Variante 2: Refonte — fond subtly different */
+.service-card--highlight {
+  background-color: rgba(196, 149, 106, 0.04);
+}
+
+.service-card--highlight:hover {
+  background-color: rgba(196, 149, 106, 0.08);
+}
+
+.service-card--highlight::before {
+  width: 100%;
+  left: 0;
+  background: var(--color-laiton);
+}
+
+/* Variante 3: Création — badge texte simple */
+.service-card--devis {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-laiton);
+  margin-bottom: var(--space-sm);
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.service-card__badge::before {
+  content: '';
+  width: 16px;
+  height: 1px;
+  background: var(--color-laiton);
+}
+
+/* Prix — grand, structurant */
+.service-card__price {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-laiton);
+  margin-bottom: 0.2rem;
+  line-height: 1.2;
+}
+
+.service-card__price-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.service-card h3 {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-sm);
+}
+
+.service-card p {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.service-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: var(--space-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-laiton);
+  transition: gap 0.2s var(--ease-out);
+}
+
+.service-card__link::after {
+  content: '';
+  width: 12px;
+  height: 1px;
+  background: var(--color-laiton);
+  transition: width 0.2s var(--ease-out);
+}
+
+.service-card__link:hover::after {
+  width: 20px;
+}
+
+/* Appel diagnostic — bandeau haut, pas de card */
+.service-banner {
+  border: 1px solid var(--color-border-subtle);
+  border-bottom: 2px solid var(--color-laiton);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  background-color: transparent;
+}
+
+@media (min-width: 768px) {
+  .service-banner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.service-banner__content h3 {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin-bottom: 0.2rem;
+}
+
+.service-banner__content p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.service-banner .btn-primary {
+  flex-shrink: 0;
+}

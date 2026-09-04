@@ -1,0 +1,144 @@
+.problem {
+  background-color: var(--color-parchemin);
+  position: relative;
+}
+
+.problem__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .problem__grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+}
+
+.problem__content {
+  order: 2;
+}
+
+@media (min-width: 768px) {
+  .problem__content {
+    order: 1;
+  }
+}
+
+.problem__visual {
+  order: 1;
+}
+
+@media (min-width: 768px) {
+  .problem__visual {
+    order: 2;
+    position: sticky;
+    top: 100px;
+  }
+}
+
+.problem__points {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: var(--space-md);
+}
+
+/* Points — séparés par des bordures, pas des cards */
+.problem__point {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-start;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.problem__point:last-child {
+  border-bottom: none;
+}
+
+/* Icône — juste un chiffre ou unsymbole, pas de rond */
+.problem__point-icon {
+  flex-shrink: 0;
+  width: 32px;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.problem__point-text h3 {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: 0.3rem;
+}
+
+.problem__point-text p {
+  font-size: 0.85rem;
+  color: #6B6560;
+  line-height: 1.65;
+}
+
+/* Card score — brutal, pas de radius, bordure forte */
+.problem__card {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  padding: var(--space-lg);
+  border-top: 3px solid #DC2626;
+}
+
+.problem__card-header {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dark);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.problem__card-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.problem__card-item:last-child {
+  border-bottom: none;
+}
+
+/* Checks — carrés, pas de ronds */
+.problem__card-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.problem__card-check--fail {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.problem__card-check--pass {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.problem__card-item span {
+  font-size: 0.82rem;
+  color: var(--color-text-dark);
+}
