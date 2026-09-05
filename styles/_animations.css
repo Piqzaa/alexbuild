@@ -38,11 +38,11 @@ body.no-js .hero__glow {
 
 @media (prefers-reduced-motion: no-preference) {
 
-  /* Reveal au scroll */
+  /* Reveal au scroll — plus premium */
   .reveal {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
+    transform: translateY(28px);
+    transition: opacity 0.6s var(--ease-smooth), transform 0.6s var(--ease-smooth);
   }
 
   .reveal.visible {
@@ -50,11 +50,11 @@ body.no-js .hero__glow {
     transform: translateY(0);
   }
 
-  /* Stagger delay */
-  .reveal[data-delay="1"] { transition-delay: 0.08s; }
-  .reveal[data-delay="2"] { transition-delay: 0.16s; }
-  .reveal[data-delay="3"] { transition-delay: 0.24s; }
-  .reveal[data-delay="4"] { transition-delay: 0.32s; }
+  /* Stagger delay — plus espacé pour effet cascade */
+  .reveal[data-delay="1"] { transition-delay: 0.1s; }
+  .reveal[data-delay="2"] { transition-delay: 0.2s; }
+  .reveal[data-delay="3"] { transition-delay: 0.3s; }
+  .reveal[data-delay="4"] { transition-delay: 0.4s; }
 
   /* Hero title — lettres */
   .hero__title-char {
@@ -72,6 +72,75 @@ body.no-js .hero__glow {
   /* Smooth scroll */
   html {
     scroll-behavior: smooth;
+  }
+
+  /* ---- Hover effects premium ---- */
+
+  /* Portfolio cards — lift + border glow */
+  .portfolio-card {
+    transition: border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+
+  .portfolio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Process steps — glow on hover */
+  .process__step {
+    transition: background-color 0.3s var(--ease-out);
+  }
+
+  .process__step:hover {
+    background-color: rgba(196, 149, 106, 0.03);
+  }
+
+  /* Hero badge — animation d'apparition */
+  .hero__badge {
+    animation: badge-in 0.6s var(--ease-smooth) 0.2s both;
+  }
+
+  @keyframes badge-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Hero card — slide up premium */
+  .hero__card {
+    animation: card-in 0.7s var(--ease-smooth) 0.4s both;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Hero actions — fade in */
+  .hero__actions {
+    animation: actions-in 0.6s var(--ease-smooth) 0.3s both;
+  }
+
+  @keyframes actions-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
