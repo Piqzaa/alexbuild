@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AlexBuild — Audit, refonte et création de sites web pour artisans et commerçants à Strasbourg. Votre prochain client vous cherche sur Google.">
+  <meta name="description" content="AlexBuild — Audit, refonte et création de sites web pour artisans et commerçants. Basé à Strasbourg, intervention partout en France. Votre prochain client vous cherche sur Google.">
   <title>AlexBuild — Sites web qui ramènent des clients</title>
 
   <!-- Fonts -->
@@ -18,7 +18,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 
   <!-- Progressive enhancement : sans JS, tout reste visible -->
-  <script>document.body.classList.replace('no-js','js')</script>
 </head>
 <body class="no-js">
 
@@ -31,10 +30,10 @@
         <a href="#services">Services</a>
         <a href="#realisations">Réalisations</a>
         <a href="#processus">Comment ça marche</a>
-        <a href="#contact">Contact</a>
+        <a href="/portfolio">Portfolio dev</a>
       </div>
 
-      <a href="#contact" class="nav__cta">Appel gratuit</a>
+      <a href="#contact" class="nav__cta">Me contacter</a>
 
       <button class="nav__hamburger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span>
@@ -44,12 +43,12 @@
     </div>
 
     <!-- Menu mobile -->
-    <div class="nav__mobile" id="mobile-menu" role="dialog" aria-label="Menu de navigation">
+      <div class="nav__mobile" id="mobile-menu" role="dialog" aria-label="Menu de navigation">
       <a href="#services">Services</a>
       <a href="#realisations">Réalisations</a>
       <a href="#processus">Comment ça marche</a>
-      <a href="#contact">Contact</a>
-      <a href="#contact" class="nav__mobile-cta">Appel gratuit</a>
+      <a href="/portfolio">Portfolio dev</a>
+      <a href="#contact" class="nav__mobile-cta">Me contacter</a>
     </div>
   </nav>
 
@@ -63,17 +62,17 @@
     <div class="hero__glow" aria-hidden="true"></div>
     <div class="hero__inner">
       <div class="hero__content">
-        <div class="hero__badge">Basé à Strasbourg — missions partout en France</div>
+        <div class="hero__badge"><span class="hero__badge-line">Basé à Strasbourg</span><span class="hero__badge-dot"></span><span class="hero__badge-text">Intervention à distance & partout en France</span></div>
 
-        <h1 class="hero__title">Un site vitrine qui vous apporte des appels, pas juste des visites.</h1>
+        <h1 class="hero__title">Un site web qui vous apporte de nouveaux clients. Pas juste une carte de visite.</h1>
 
         <p class="hero__subtitle">
-          Audit, refonte et création de sites web pour artisans et commerçants à Strasbourg.
-          Pas de jargon technique. Juste ce qui vous fait gagner des clients.
+          Audit, refonte et création sur-mesure pour artisans, commerçants et restaurateurs.
+          Un site rapide, visible sur Google et conçu pour faire sonner votre téléphone.
         </p>
 
         <div class="hero__actions">
-          <a href="#contact" class="btn-primary">Réserver mon appel diagnostic gratuit</a>
+          <a href="#contact" class="btn-primary">Demander mon diagnostic gratuit</a>
           <a href="#services" class="btn-ghost">Découvrir les services</a>
         </div>
       </div>
@@ -91,16 +90,16 @@
               <div class="hero__stat-label">pas d'agence, coût maîtrisé</div>
             </div>
             <div class="hero__stat">
-              <div class="hero__stat-value">Sur devis</div>
-              <div class="hero__stat-label">pas de tarif imposé</div>
+              <div class="hero__stat-value">Sur-mesure</div>
+              <div class="hero__stat-label">selon vos besoins réels</div>
             </div>
             <div class="hero__stat">
-              <div class="hero__stat-value">Strasbourg</div>
-              <div class="hero__stat-label">basé là, pas à 3000 km</div>
+              <div class="hero__stat-value">Disponible</div>
+              <div class="hero__stat-label">à Strasbourg ou partout en France</div>
             </div>
           </div>
           <div class="hero__card-cta">
-            <strong>Audit offert</strong> pour les premiers contacts — 15 min pour identifier ce qui vous freine.
+            <strong>Diagnostic offert (appel ou e-mail)</strong> — 15 min pour identifier ce qui vous freine.
           </div>
         </div>
       </div>
@@ -191,38 +190,63 @@
         <p>On ne vous vend pas "un site". On identifie d'abord ce qui fait fuir vos visiteurs, puis on corrige.</p>
       </div>
 
-      <!-- Appel diagnostic — banner spécial -->
-      <div class="service-banner reveal" data-delay="1">
-        <div class="service-banner__content">
-          <h3>Appel diagnostic gratuit</h3>
-          <p>15-20 minutes en visio ou au téléphone. On identifie vos problèmes principaux, sans engagement.</p>
+      <div class="services__editorial">
+        <!-- Diagnostic gratuit -->
+        <div class="service-editorial service-editorial--entry reveal" data-delay="1">
+          <div class="service-editorial__accent"></div>
+          <div class="service-editorial__content">
+            <h3>Diagnostic gratuit</h3>
+            <p>15-20 minutes par téléphone, visio ou e-mail. On identifie vos axes d'amélioration, sans engagement.</p>
+            <a href="#contact" class="btn-ghost">Obtenir mon diagnostic</a>
+          </div>
         </div>
-        <a href="#contact" class="btn-primary">Réserver maintenant</a>
-      </div>
 
-      <div class="services__grid">
+        <hr class="services__hairline">
+
         <!-- Audit -->
-        <div class="service-card reveal" data-delay="1">
-          <div class="service-card__price">100 – 150 €</div>
-          <h3>Audit détaillé</h3>
-          <p>Un rapport PDF priorisé qui explique exactement ce qui freine vos visiteurs : vitesse, mobile, SEO local, tunnel de contact. Chaque point est classé par urgence d'action.</p>
-          <a href="#contact" class="service-card__link">Demander un audit</a>
+        <div class="service-editorial reveal" data-delay="1">
+          <div class="service-editorial__content service-editorial__content--split">
+            <div class="service-editorial__left">
+              <div class="service-editorial__price">100 – 150 €</div>
+              <div class="service-editorial__name">Audit détaillé</div>
+            </div>
+            <div class="service-editorial__right">
+              <p>Un rapport PDF priorisé qui explique exactement ce qui freine vos visiteurs : vitesse, mobile, SEO local, tunnel de contact. Chaque point est classé par urgence d'action.</p>
+              <a href="#contact" class="service-editorial__link">Demander un audit</a>
+            </div>
+          </div>
         </div>
+
+        <hr class="services__hairline">
 
         <!-- Refonte -->
-        <div class="service-card service-card--highlight reveal" data-delay="2">
-          <div class="service-card__price">300 – 800 €</div>
-          <h3>Refonte ciblée</h3>
-          <p>On corrige précisément ce que l'audit a identifié. Pas de refonte complète inutile — juste ce qui vous fait perdre des clients. Résultat mesurable.</p>
-          <a href="#contact" class="service-card__link">Parler de votre projet</a>
+        <div class="service-editorial service-editorial--highlight reveal" data-delay="2">
+          <div class="service-editorial__content service-editorial__content--split">
+            <div class="service-editorial__left">
+              <div class="service-editorial__price">300 – 800 €</div>
+              <div class="service-editorial__name">Refonte ciblée</div>
+            </div>
+            <div class="service-editorial__right">
+              <p>On corrige précisément ce que l'audit a identifié. Pas de refonte complète inutile — juste ce qui vous fait perdre des clients. Résultat mesurable.</p>
+              <a href="#contact" class="service-editorial__link">Parler de votre projet</a>
+            </div>
+          </div>
         </div>
 
+        <hr class="services__hairline">
+
         <!-- Création -->
-        <div class="service-card service-card--devis reveal" data-delay="3">
-          <div class="service-card__badge">Sur devis</div>
-          <h3>Création de site</h3>
-          <p>Un site pensé pour convertir vos visiteurs en clients. Design sur-mesure, optimisé mobile et local, avec un tunnel de contact clair. Chaque projet est unique.</p>
-          <a href="#contact" class="service-card__link">Discuter de votre projet</a>
+        <div class="service-editorial reveal" data-delay="3">
+          <div class="service-editorial__content service-editorial__content--split">
+            <div class="service-editorial__left">
+              <div class="service-editorial__price service-editorial__price--devis">Sur devis</div>
+              <div class="service-editorial__name">Création de site</div>
+            </div>
+            <div class="service-editorial__right">
+              <p>Un site pensé pour convertir vos visiteurs en clients. Design sur-mesure, optimisé mobile et local, avec un tunnel de contact clair. Chaque projet est unique.</p>
+              <a href="#contact" class="service-editorial__link">Discuter de votre projet</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -281,6 +305,11 @@
           </div>
         </div>
       </div>
+
+      <div class="portfolio__dev-note reveal">
+        <p>Vous souhaitez découvrir des projets plus complexes ou mes réalisations purement techniques ?</p>
+        <a href="/portfolio" class="portfolio__dev-link">Voir mon portfolio développeur web →</a>
+      </div>
     </div>
   </section>
 
@@ -299,8 +328,8 @@
           <div class="process__marker">
             <span class="process__label">Jour J</span>
           </div>
-          <h3>L'appel diagnostic</h3>
-          <p><strong>15-20 minutes</strong> en visio ou au téléphone. On discute de votre activité, de vos clients, et de ce qui vous freine en ligne. Gratuit, sans engagement.</p>
+          <h3>Le diagnostic gratuit</h3>
+          <p><strong>15-20 minutes</strong> par téléphone, visio ou échange d'e-mails. On discute de votre activité, de vos clients et de ce qui vous freine en ligne. Gratuit et sans engagement.</p>
         </div>
 
         <div class="process__step process__step--audit reveal" data-delay="2">
@@ -347,7 +376,7 @@
       <div class="section-title reveal">
         <h2> Parlons de votre projet</h2>
         <hr class="separator">
-        <p>Un premier appel gratuit. On comprend votre situation, et après on décide ensemble.</p>
+        <p>Un diagnostic gratuit (par téléphone, visio ou e-mail). Analysons votre situation avant de décider ensemble.</p>
       </div>
 
       <div class="contact__grid">
@@ -376,17 +405,27 @@
           </div>
 
           <div class="form-group">
+            <label for="contact-pref">Mode de contact préféré</label>
+            <select id="contact-pref" name="contact_pref" required>
+              <option value="email" selected>Par e-mail</option>
+              <option value="telephone">Par téléphone / WhatsApp</option>
+              <option value="visio">En visio</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label for="message">Votre message <span style="color: #9CA3AF; font-weight: 400;">(optionnel)</span></label>
             <textarea id="message" name="message" placeholder="Décrivez-moi votre situation en quelques mots..."></textarea>
           </div>
 
           <button type="submit" class="btn-primary">Envoyer ma demande</button>
+          <p class="form-rgpd">Les informations recueillies via ce formulaire sont traitées par Alexandre [Nom], responsable de traitement, sur le fondement de son intérêt légitime (Art. 6(1)(f) RGPD), afin de répondre à votre demande. Vos données sont conservées 12 mois. Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et d'effacement. Consultez notre <a href="politique-confidentialite.html">politique de confidentialité</a>.</p>
         </form>
 
         <div class="contact__infos reveal" data-delay="1">
           <div class="contact__info-highlight">
-            <h3>Premier appel gratuit</h3>
-            <p>15-20 minutes en visio ou au téléphone. On identifie vos problèmes principaux, sans engagement et sans facture.</p>
+            <h3>Diagnostic gratuit</h3>
+            <p>Par e-mail, téléphone ou visio. On identifie vos axes d'amélioration principaux, sans engagement et sans facture.</p>
           </div>
 
           <div class="contact__info-block">
@@ -396,11 +435,20 @@
 
           <div class="contact__info-block">
             <h3>Localisation</h3>
-            <p>Basé à Strasbourg. Missions possibles dans toute la France, en présentiel ou à distance.</p>
+            <p>Basé en métropole strasbourgeoise. Intervention possible dans toute la France, en présentiel ou à distance.</p>
           </div>
 
           <div class="contact__map">
-            <span>Strasbourg, France</span>
+            <iframe
+              title="Localisation AlexBuild Schiltigheim Strasbourg"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2638.165243891461!2d7.7471203!3d48.6062335!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4796c83693e3d64d%3A0x8e833481232822a1!2s101a%20Rue%20d&#39;Adelshoffen%2C%2067300%20Schiltigheim!5e0!3m2!1sfr!2sfr!4v1710000000000!5m2!1sfr!2sfr"
+              width="100%"
+              height="200"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
           </div>
         </div>
       </div>
@@ -421,16 +469,17 @@
           <a href="#services">Services</a>
           <a href="#realisations">Réalisations</a>
           <a href="#processus">Comment ça marche</a>
-          <a href="#contact">Contact</a>
           <a href="/portfolio">Portfolio dev</a>
+          <a href="#contact">Contact</a>
         </div>
       </div>
 
       <div class="footer__bottom">
-        <div class="footer__copy">© 2024 AlexBuild — Strasbourg, France</div>
+        <div class="footer__copy">© 2026 AlexBuild — Métropole strasbourgeoise — Intervention partout en France</div>
         <div class="footer__legal">
-          <a href="#">Mentions légales</a>
-          <a href="#">Politique de confidentialité</a>
+          <a href="mentions-legales.html">Mentions légales</a>
+          <a href="politique-confidentialite.html">Politique de confidentialité</a>
+          <a href="politique-cookies.html">Politique cookies</a>
         </div>
       </div>
     </div>
