@@ -62,7 +62,7 @@ function initTitleAnimation() {
   title.querySelectorAll('.hero__title-char').forEach((char, i) => {
     setTimeout(() => {
       char.classList.add('visible');
-    }, 80 + i * 35);
+    }, 50 + i * 25);
   });
 }
 

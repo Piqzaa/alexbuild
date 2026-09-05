@@ -67,9 +67,18 @@
 .hero__content {
   position: relative;
   z-index: 4;
+  transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
 }
 
-/* Badge — trait cuivre */
+/* Hero scroll animation — fly out when scrolling past */
+@media (prefers-reduced-motion: no-preference) {
+  .hero--past .hero__content {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+/* Badge — trait cuivre + point séparateur */
 .hero__badge {
   display: inline-flex;
   align-items: center;
@@ -82,7 +91,7 @@
   letter-spacing: 0.03em;
 }
 
-.hero__badge::before {
+.hero__badge-line::before {
   content: '';
   width: 24px;
   height: 1px;
@@ -90,8 +99,7 @@
   flex-shrink: 0;
 }
 
-.hero__badge::after {
-  content: '';
+.hero__badge-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -186,11 +194,20 @@
 .hero__visual {
   position: relative;
   display: none;
+  transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
 }
 
 @media (min-width: 768px) {
   .hero__visual {
     display: block;
+  }
+}
+
+/* Hero scroll animation — card flies out when scrolling past */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .hero--past .hero__visual {
+    opacity: 0;
+    transform: translateY(-20px);
   }
 }
 
@@ -237,11 +254,6 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.hero__stat:last-child,
-.hero__stat:nth-child(4) {
-  border-bottom: none;
-}
-
 .hero__stat-value {
   font-family: var(--font-display);
   font-size: 1.6rem;
@@ -260,7 +272,6 @@
 .hero__card-cta {
   margin-top: var(--space-md);
   padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border-subtle);
   font-size: 0.8rem;
   color: var(--color-text-muted);
   line-height: 1.6;

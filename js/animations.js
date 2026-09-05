@@ -13,6 +13,7 @@ export function initAnimations() {
 
   initReveal();
   initParallax();
+  initHeroScroll();
 }
 
 function initReveal() {
@@ -55,4 +56,18 @@ function initParallax() {
       ticking = true;
     }
   }, { passive: true });
+}
+
+function initHeroScroll() {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      hero.classList.toggle('hero--past', !entry.isIntersecting);
+    },
+    { threshold: 0, rootMargin: '-1px 0px 0px 0px' }
+  );
+
+  observer.observe(hero);
 }
