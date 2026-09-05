@@ -42,15 +42,17 @@
       </button>
     </div>
 
-    <!-- Menu mobile -->
-      <div class="nav__mobile" id="mobile-menu" role="dialog" aria-label="Menu de navigation">
-      <a href="#services">Services</a>
-      <a href="#realisations">Réalisations</a>
-      <a href="#processus">Comment ça marche</a>
-      <a href="/portfolio">Portfolio dev</a>
-      <a href="#contact" class="nav__mobile-cta">Me contacter</a>
     </div>
   </nav>
+
+  <!-- Menu mobile — hors de <nav> pour éviter le stacking context iOS Safari -->
+  <div class="nav__mobile" id="mobile-menu" role="dialog" aria-label="Menu de navigation">
+    <a href="#services">Services</a>
+    <a href="#realisations">Réalisations</a>
+    <a href="#processus">Comment ça marche</a>
+    <a href="/portfolio">Portfolio dev</a>
+    <a href="#contact" class="nav__mobile-cta">Me contacter</a>
+  </div>
 
 
   <!-- ============ HERO ============ -->
@@ -308,7 +310,7 @@
 
       <div class="portfolio__dev-note reveal">
         <p>Vous souhaitez découvrir des projets plus complexes ou mes réalisations purement techniques ?</p>
-        <a href="/portfolio" class="portfolio__dev-link">Voir mon portfolio développeur web →</a>
+        <a href="https://alexbuild.fr" class="portfolio__dev-link">Voir mon portfolio développeur web →</a>
       </div>
     </div>
   </section>
