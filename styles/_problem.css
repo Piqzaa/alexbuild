@@ -63,8 +63,9 @@
 .problem__point-icon {
   flex-shrink: 0;
   width: 32px;
-  font-size: 1.2rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding-top: 2px;
 }
 
