@@ -99,6 +99,18 @@
   flex-shrink: 0;
 }
 
+.hero__badge-dot,
+.hero__badge-text {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .hero__badge-dot,
+  .hero__badge-text {
+    display: inline;
+  }
+}
+
 .hero__badge-dot {
   width: 6px;
   height: 6px;
@@ -300,11 +312,17 @@
   display: none;
 }
 
+.hero--no-video {
+  background-image: url('../assets/hero-poster.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
 .hero--no-video .hero__overlay {
   background: linear-gradient(
-    135deg,
-    var(--color-ink) 0%,
-    var(--color-ink-light) 50%,
-    var(--color-ink) 100%
+    to bottom,
+    rgba(28, 26, 30, 0.6) 0%,
+    rgba(28, 26, 30, 0.75) 40%,
+    rgba(28, 26, 30, 0.9) 100%
   );
 }
