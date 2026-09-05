@@ -13,6 +13,8 @@ export function initNav() {
 
   if (!nav || !hamburger || !mobileMenu) return;
 
+  const closeBtn = mobileMenu.querySelector('.nav__mobile-close');
+
   // Scroll effect — nav background
   const handleScroll = () => {
     if (window.scrollY > 80) {
@@ -45,6 +47,16 @@ export function initNav() {
       hamburger.setAttribute('aria-expanded', 'false');
     });
   });
+
+  // Close on X button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('open');
+      document.body.style.overflow = '';
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  }
 
   // Close on Escape
   document.addEventListener('keydown', (e) => {
