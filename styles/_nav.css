@@ -183,7 +183,7 @@
 }
 
 .nav__mobile-close {
-  position: absolute;
+  position: fixed;
   top: var(--space-sm);
   right: var(--space-sm);
   background: none;
@@ -191,6 +191,7 @@
   color: var(--color-text-muted);
   cursor: pointer;
   padding: 8px;
+  z-index: 140;
   transition: color 0.2s var(--ease-out);
 }
 
