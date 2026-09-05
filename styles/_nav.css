@@ -24,6 +24,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-sm);
+  position: relative;
+  z-index: 120;
 }
 
 @media (min-width: 768px) {
@@ -139,6 +141,7 @@
   border-radius: 0;
   transition: transform 0.3s var(--ease-smooth), opacity 0.3s var(--ease-smooth);
   transform-origin: center;
+  pointer-events: none;
 }
 
 .nav__hamburger.active span:nth-child(1) {
@@ -165,6 +168,7 @@
   gap: var(--space-lg);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.3s var(--ease-smooth), visibility 0.3s var(--ease-smooth);
   z-index: 105;
 }
@@ -172,6 +176,7 @@
 .nav__mobile.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .nav__mobile a {
