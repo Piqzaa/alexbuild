@@ -82,6 +82,21 @@
   align-self: flex-start;
 }
 
+/* RGPD mention under form */
+.form-rgpd {
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  line-height: 1.6;
+  margin-top: var(--space-xs);
+  max-width: 100%;
+}
+
+.form-rgpd a {
+  color: var(--color-laiton);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Infos contact */
 .contact__infos {
   display: flex;
@@ -140,16 +155,49 @@
   letter-spacing: normal;
 }
 
-/* Map placeholder — brutal */
+/* Map — Google Maps iframe */
 .contact__map {
-  height: 160px;
-  background-color: var(--color-ink);
-  border: 1px solid var(--color-border-subtle);
+  position: relative;
   border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  filter: grayscale(0.2) contrast(1.05);
+  transition: filter 0.3s var(--ease-out);
+}
+
+.contact__map:hover {
+  filter: grayscale(0) contrast(1);
+}
+
+.contact__map iframe {
+  display: block;
+  width: 100%;
+  height: 200px;
+}
+
+/* Portfolio dev note */
+.portfolio__dev-note {
+  margin-top: var(--space-xl);
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.portfolio__dev-note p {
+  font-size: 0.85rem;
+  color: #6B6560;
+  margin-bottom: 0.5rem;
+}
+
+.portfolio__dev-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-laiton);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--ease-out);
+}
+
+.portfolio__dev-link:hover {
+  color: #A07A50;
 }
