@@ -128,7 +128,7 @@
 .hero__title br {
   display: block;
   content: '';
-  margin-top: 0.2em;
+  margin-top: 0.5em;
 }
 
 .hero h1 em {
