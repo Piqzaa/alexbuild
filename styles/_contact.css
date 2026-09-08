@@ -187,6 +187,8 @@
   font-size: 0.85rem;
   color: #6B6560;
   margin-bottom: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .portfolio__dev-link {
