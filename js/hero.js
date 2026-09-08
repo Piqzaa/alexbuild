@@ -70,7 +70,10 @@ function initTitleAnimation() {
 
     // Réinsérer le <br> après le bon mot
     if (brAfterWordIndex >= 0 && wordIndex === brAfterWordIndex) {
-      title.appendChild(document.createElement('br'));
+      const br = document.createElement('span');
+      br.className = 'hero__title-br';
+      br.setAttribute('aria-hidden', 'true');
+      title.appendChild(br);
     } else if (wordIndex < words.length - 1) {
       title.appendChild(document.createTextNode(' '));
     }

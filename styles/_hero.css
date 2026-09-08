@@ -125,10 +125,9 @@
   letter-spacing: -0.02em;
 }
 
-.hero__title br {
+.hero__title-br {
   display: block;
-  content: '';
-  margin-top: 0.5em;
+  height: 0.5em;
 }
 
 .hero h1 em {
