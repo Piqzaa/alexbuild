@@ -48,7 +48,12 @@ function initTitleAnimation() {
   title.textContent = '';
   title.setAttribute('aria-label', text);
 
-  const words = text.split(' ');
+  // Le <br> ne produit pas d'espace dans textContent, le réinsérer pour le split
+  const splitText = brAfterWordIndex >= 0
+    ? text.substring(0, charCount) + ' ' + text.substring(charCount)
+    : text;
+
+  const words = splitText.split(' ');
 
   words.forEach((word, wordIndex) => {
     const wordSpan = document.createElement('span');
