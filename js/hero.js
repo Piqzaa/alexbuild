@@ -31,10 +31,9 @@ function initTitleAnimation() {
   // Détecter le <br> avant de vider le contenu
   const brElement = title.querySelector('br');
   let brAfterWordIndex = -1;
+  let charCount = 0;
 
   if (brElement) {
-    // Compter les mots avant le <br>
-    let charCount = 0;
     const nodes = title.childNodes;
     for (const node of nodes) {
       if (node === brElement) break;
