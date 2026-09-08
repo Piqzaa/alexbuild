@@ -28,6 +28,22 @@ function initTitleAnimation() {
   const title = document.querySelector('.hero__title');
   if (!title) return;
 
+  // Détecter le <br> avant de vider le contenu
+  const brElement = title.querySelector('br');
+  let brAfterWordIndex = -1;
+
+  if (brElement) {
+    // Compter les mots avant le <br>
+    let charCount = 0;
+    const nodes = title.childNodes;
+    for (const node of nodes) {
+      if (node === brElement) break;
+      charCount += node.textContent.length;
+    }
+    const textBeforeBr = title.textContent.substring(0, charCount).trim();
+    brAfterWordIndex = textBeforeBr.split(' ').length - 1;
+  }
+
   const text = title.textContent.trim();
   title.textContent = '';
   title.setAttribute('aria-label', text);
@@ -48,9 +64,11 @@ function initTitleAnimation() {
 
     title.appendChild(wordSpan);
 
-    if (wordIndex < words.length - 1) {
-      const space = document.createTextNode(' ');
-      title.appendChild(space);
+    // Réinsérer le <br> après le bon mot
+    if (brAfterWordIndex >= 0 && wordIndex === brAfterWordIndex) {
+      title.appendChild(document.createElement('br'));
+    } else if (wordIndex < words.length - 1) {
+      title.appendChild(document.createTextNode(' '));
     }
   });
 

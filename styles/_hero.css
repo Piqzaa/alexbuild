@@ -125,6 +125,12 @@
   letter-spacing: -0.02em;
 }
 
+.hero__title br {
+  display: block;
+  content: '';
+  margin-top: 0.2em;
+}
+
 .hero h1 em {
   font-style: normal;
   color: var(--color-laiton);
