@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /mentions-legales.html
+Disallow: /politique-confidentialite.html
+Disallow: /politique-cookies.html
+Disallow: /politique-traitement-donnees.html
+
+Sitemap: https://alexbuild.fr/sitemap.xml
