@@ -20,8 +20,24 @@
   .offer summary{padding-left:1rem;padding-right:1rem}
   .offer__body{gap:1.1rem;padding:0 1rem 2rem}
   .offer__body>p,.offer__details,.offer__body ul,.offer__body .btn{grid-column:auto;grid-row:auto}
-  .offer__badge{left:1rem}
-  .offer--featured summary{padding-top:2.55rem}
+  .offer__badge{
+    position:static;
+    grid-column:1/-1;
+    grid-row:1;
+    width:max-content;
+    padding:.25rem .5rem;
+    color:#171519;
+    background:var(--gold-light);
+    border-radius:999px;
+    font-size:.58rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .offer--featured summary{padding-top:1.25rem}
+  .offer--featured .offer__name{grid-column:1;grid-row:2;margin-top:.2rem}
+  .offer--featured .offer__fit{grid-row:3}
+  .offer--featured .offer__price{grid-row:4}
+  .offer--featured .offer__toggle{grid-row:1/5}
   .offer--featured::before{left:0}
 }
 
