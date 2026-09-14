@@ -1,0 +1,6 @@
+# Local visual QA artifacts
+.chrome-*/
+.edge-*/
+qa-*.html
+*-tall.png
+v2-*.png
