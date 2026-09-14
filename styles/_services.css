@@ -9,6 +9,8 @@
 .offer__details{padding:1rem;border-left:2px solid var(--gold-dark);background:rgba(138,91,50,.07)}
 .offer__details span{display:block;margin-bottom:.35rem;color:var(--gold-dark);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
 .offer__details strong{display:block;color:#36302b;font-size:.82rem;font-weight:600;line-height:1.55}
+.offer--featured summary{padding-top:2.35rem}
+.offer__badge{top:.9rem}
 .offer__body>p{grid-column:1;grid-row:1}
 .offer__details{grid-column:1;grid-row:2}
 .offer__body ul{grid-column:2;grid-row:1 / span 2}
@@ -19,6 +21,7 @@
   .offer__body{gap:1.1rem;padding:0 1rem 2rem}
   .offer__body>p,.offer__details,.offer__body ul,.offer__body .btn{grid-column:auto;grid-row:auto}
   .offer__badge{left:1rem}
+  .offer--featured summary{padding-top:2.55rem}
   .offer--featured::before{left:0}
 }
 
