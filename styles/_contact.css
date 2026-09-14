@@ -4,13 +4,13 @@
 @media(max-width:920px){.contact__statement{position:relative;top:auto}.contact__grid{grid-template-columns:1fr}.contact__statement h2{font-size:clamp(3.3rem,10vw,6rem)}}
 @media(max-width:560px){.contact__fields{grid-template-columns:1fr}.contact__message{grid-column:auto}.contact__submit{align-items:stretch;flex-direction:column}.contact__submit .btn{width:100%}}
 
-.contact__consent{grid-template-columns:1.25rem 1fr;gap:.95rem}
+.contact__consent{grid-template-columns:1.35rem 1fr;gap:1.2rem}
 .contact__consent input{width:1.15rem;height:1.15rem;margin-top:.22rem}
 .contact__fields--simple .contact__need,
 .contact__fields--simple .contact__message{grid-column:1/-1}
 .contact__fields--simple textarea{min-height:160px}
 
 @media(max-width:560px){
-  .contact__consent{grid-template-columns:1.35rem 1fr;gap:1rem;font-size:.76rem}
-  .contact__consent input{width:1.2rem;height:1.2rem}
+  .contact__consent{grid-template-columns:1.45rem 1fr;gap:1.25rem;font-size:.76rem}
+  .contact__consent input{width:1.2rem;height:1.2rem;margin-top:.18rem}
 }

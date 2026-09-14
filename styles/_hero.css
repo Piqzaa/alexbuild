@@ -289,7 +289,7 @@
 
   .hero__arrival-card {
     width: min(86vw, 330px);
-    padding: 1rem 1.05rem;
+    padding: 1.2rem 1.35rem;
     background: rgba(248, 243, 235, .48);
     border-color: rgba(255, 238, 213, .4);
     border-radius: 999px 999px 999px 34px;
@@ -299,6 +299,7 @@
 
   .hero__arrival-left {
     justify-self: start;
+    padding-right: 1.55rem;
     transform: translate3d(-.25rem, var(--card-y), 0) rotate(-2deg);
   }
 

@@ -14,6 +14,36 @@ export function initNav() {
   if (!nav || !hamburger || !mobileMenu) return;
 
   const closeBtn = mobileMenu.querySelector('.nav__mobile-close');
+  const focusableSelector = 'a[href], button:not([disabled])';
+  let lastFocusedElement = null;
+
+  const closeMenu = ({ restoreFocus = false } = {}) => {
+    hamburger.classList.remove('active');
+    mobileMenu.classList.remove('open');
+    document.body.style.overflow = '';
+    hamburger.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) (lastFocusedElement || hamburger).focus();
+  };
+
+  const openMenu = () => {
+    lastFocusedElement = document.activeElement;
+    hamburger.classList.add('active');
+    mobileMenu.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    hamburger.setAttribute('aria-expanded', 'true');
+    (closeBtn || mobileMenu.querySelector(focusableSelector))?.focus();
+  };
+
+  const scrollToAnchor = (hash, behavior = 'smooth') => {
+    if (!hash || hash === '#') return false;
+    const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (!target) return false;
+    const navHeight = nav.getBoundingClientRect().height || 0;
+    const top = target.getBoundingClientRect().top + window.scrollY - navHeight;
+    window.scrollTo({ top: Math.max(0, top), behavior });
+    history.pushState(null, '', hash);
+    return true;
+  };
 
   // Scroll effect — nav background
   const handleScroll = () => {
@@ -30,42 +60,63 @@ export function initNav() {
   // Hamburger toggle
   hamburger.addEventListener('click', () => {
     const isOpen = hamburger.classList.contains('active');
-
-    hamburger.classList.toggle('active');
-    mobileMenu.classList.toggle('open');
-
-    document.body.style.overflow = isOpen ? '' : 'hidden';
-    hamburger.setAttribute('aria-expanded', !isOpen);
+    if (isOpen) closeMenu({ restoreFocus: true });
+    else openMenu();
   });
 
   // Close on link click
   mobileLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      hamburger.classList.remove('active');
-      mobileMenu.classList.remove('open');
-      document.body.style.overflow = '';
-      hamburger.setAttribute('aria-expanded', 'false');
+    link.addEventListener('click', (event) => {
+      const hash = link.hash;
+      closeMenu();
+      if (hash && link.pathname === window.location.pathname) {
+        event.preventDefault();
+        event.stopPropagation();
+        requestAnimationFrame(() => scrollToAnchor(hash));
+      }
     });
   });
 
   // Close on X button
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      hamburger.classList.remove('active');
-      mobileMenu.classList.remove('open');
-      document.body.style.overflow = '';
-      hamburger.setAttribute('aria-expanded', 'false');
-    });
+    closeBtn.addEventListener('click', () => closeMenu({ restoreFocus: true }));
   }
 
   // Close on Escape
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
-      hamburger.classList.remove('active');
-      mobileMenu.classList.remove('open');
-      document.body.style.overflow = '';
-      hamburger.setAttribute('aria-expanded', 'false');
-      hamburger.focus();
+    const isOpen = mobileMenu.classList.contains('open');
+    if (e.key === 'Escape' && isOpen) {
+      closeMenu({ restoreFocus: true });
+    }
+    if (e.key === 'Tab' && isOpen) {
+      const focusableItems = [...mobileMenu.querySelectorAll(focusableSelector)];
+      if (!focusableItems.length) return;
+      const firstItem = focusableItems[0];
+      const lastItem = focusableItems[focusableItems.length - 1];
+      if (e.shiftKey && document.activeElement === firstItem) {
+        e.preventDefault();
+        lastItem.focus();
+      } else if (!e.shiftKey && document.activeElement === lastItem) {
+        e.preventDefault();
+        firstItem.focus();
+      }
     }
   });
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link || link.classList.contains('skip-link')) return;
+    if (link.pathname !== window.location.pathname) return;
+    if (!scrollToAnchor(link.hash)) return;
+    event.preventDefault();
+  });
+
+  if (window.location.hash && window.location.hash !== '#accueil') {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToAnchor(window.location.hash, 'auto');
+        setTimeout(() => scrollToAnchor(window.location.hash, 'auto'), 120);
+      });
+    });
+  }
 }

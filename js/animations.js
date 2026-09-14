@@ -5,6 +5,21 @@ export function initAnimations() {
   if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
     reveals.forEach((element) => element.classList.add('visible'));
   } else {
+    const revealIfVisible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewportHeight * 0.93 && rect.bottom > viewportHeight * 0.07) {
+        element.classList.add('visible');
+        return true;
+      }
+      return false;
+    };
+    const revealVisibleItems = () => {
+      reveals.forEach((element) => {
+        if (element.classList.contains('visible')) return;
+        if (revealIfVisible(element)) observer.unobserve(element);
+      });
+    };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
@@ -12,7 +27,13 @@ export function initAnimations() {
         observer.unobserve(entry.target);
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
-    reveals.forEach((element) => observer.observe(element));
+    reveals.forEach((element) => {
+      if (revealIfVisible(element)) return;
+      observer.observe(element);
+    });
+    requestAnimationFrame(revealVisibleItems);
+    addEventListener('scroll', revealVisibleItems, { passive: true });
+    addEventListener('hashchange', () => requestAnimationFrame(revealVisibleItems), { passive: true });
   }
 
   const pageProgress = document.querySelector('[data-scroll-progress]');

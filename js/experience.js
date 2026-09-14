@@ -12,7 +12,7 @@ function initComparison() {
   if (!comparison || !range) return;
 
   const setSplit = (value) => {
-    const split = Math.min(88, Math.max(12, value));
+    const split = Math.min(100, Math.max(0, value));
     range.value = String(Math.round(split));
     comparison.style.setProperty('--split', `${split}%`);
   };

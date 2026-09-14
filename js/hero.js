@@ -169,6 +169,7 @@ function initFrameScrub(hero) {
     };
     image.onerror = () => loadingFrames.delete(index);
     image.src = frameSources[index];
+    if (image.decode) image.decode().catch(() => {});
   };
 
   const preloadRange = (from, to) => {
@@ -179,11 +180,36 @@ function initFrameScrub(hero) {
   preloadRange(1, 18);
 
   let warmupIndex = 19;
-  const warmupTimer = setInterval(() => {
-    preloadRange(warmupIndex, Math.min(HERO_FRAME_COUNT - 1, warmupIndex + 5));
-    warmupIndex += 6;
-    if (warmupIndex >= HERO_FRAME_COUNT) clearInterval(warmupTimer);
-  }, 850);
+  let warmupTimer = null;
+  const stopWarmup = () => {
+    if (!warmupTimer) return;
+    clearInterval(warmupTimer);
+    warmupTimer = null;
+  };
+  const startWarmup = () => {
+    if (warmupTimer || warmupIndex >= HERO_FRAME_COUNT) return;
+    warmupTimer = setInterval(() => {
+      preloadRange(warmupIndex, Math.min(HERO_FRAME_COUNT - 1, warmupIndex + 5));
+      warmupIndex += 6;
+      if (warmupIndex >= HERO_FRAME_COUNT) stopWarmup();
+    }, 850);
+  };
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) startWarmup();
+        else stopWarmup();
+      });
+    }, { rootMargin: '35% 0px' });
+    observer.observe(hero);
+    window.addEventListener('pagehide', () => {
+      stopWarmup();
+      observer.disconnect();
+    }, { once: true });
+  } else {
+    startWarmup();
+  }
 
   return (progress) => {
     const timelineProgress = clamp(progress / .8);
