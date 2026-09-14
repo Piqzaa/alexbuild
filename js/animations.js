@@ -1,73 +1,41 @@
-/**
- * animations.js — IntersectionObserver (reveal au scroll + parallax)
- * AlexBuild
- */
-
 import { prefersReducedMotion } from './utils.js';
 
 export function initAnimations() {
-  if (prefersReducedMotion()) {
-    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-    return;
+  const reveals = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+    reveals.forEach((element) => element.classList.add('visible'));
+  } else {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
+    reveals.forEach((element) => observer.observe(element));
   }
 
-  initReveal();
-  initParallax();
-  initHeroScroll();
-}
+  const pageProgress = document.querySelector('[data-scroll-progress]');
+  const method = document.querySelector('[data-method-track]');
+  let scheduled = false;
 
-function initReveal() {
-  const reveals = document.querySelectorAll('.reveal');
-  if (!reveals.length) return;
+  const update = () => {
+    const scrollable = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const pageRatio = Math.min(1, Math.max(0, scrollY / scrollable));
+    pageProgress?.style.setProperty('--scroll-progress', `${pageRatio * 100}%`);
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.15,
-      rootMargin: '0px 0px -40px 0px'
+    if (method) {
+      const rect = method.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (innerHeight * 0.72 - rect.top) / (rect.height + innerHeight * 0.35)));
+      method.style.setProperty('--method-progress', `${ratio * 100}%`);
     }
-  );
+    scheduled = false;
+  };
 
-  reveals.forEach(el => observer.observe(el));
-}
-
-function initParallax() {
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
-
-  let ticking = false;
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        const scrolled = window.scrollY;
-        if (scrolled < window.innerHeight) {
-          hero.style.setProperty('--parallax', `${scrolled * 0.3}px`);
-        }
-        ticking = false;
-      });
-      ticking = true;
-    }
+  addEventListener('scroll', () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(update);
   }, { passive: true });
-}
-
-function initHeroScroll() {
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
-
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      hero.classList.toggle('hero--past', !entry.isIntersecting);
-    },
-    { threshold: 0, rootMargin: '-1px 0px 0px 0px' }
-  );
-
-  observer.observe(hero);
+  update();
 }

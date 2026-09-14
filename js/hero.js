@@ -1,124 +1,143 @@
-/**
- * hero.js — Animation du hero (stagger letters + glow souris)
- * AlexBuild
- */
-
 import { prefersReducedMotion } from './utils.js';
 
+const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
 export function initHero() {
-  initVideoFallback();
-  initTitleAnimation();
-  initGlowEffect();
+  const hero = document.querySelector('[data-hero]');
+  if (!hero) return;
+
+  const canAnimateJourney = !prefersReducedMotion();
+  const canLoadVideo = window.innerWidth > 900;
+  const canUsePointerDepth = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (canAnimateJourney) initScrollJourney(hero, canLoadVideo);
+  if (canAnimateJourney && canUsePointerDepth) {
+    initPointerDepth(hero);
+    initArrivalAttraction(hero);
+  }
 }
 
-function initVideoFallback() {
-  const video = document.querySelector('.hero__video');
-  const hero = document.querySelector('.hero');
-  if (!video || !hero) return;
+function initPointerDepth(hero) {
+  let frame = null;
 
-  const playPromise = video.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      hero.classList.add('hero--no-video');
+  hero.addEventListener('pointermove', (event) => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      const rect = hero.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - .5;
+      const y = (event.clientY - Math.max(rect.top, 0)) / window.innerHeight - .5;
+      hero.style.setProperty('--px', `${x * -12}px`);
+      hero.style.setProperty('--py', `${y * -7}px`);
+      frame = null;
     });
-  }
-}
-
-function initTitleAnimation() {
-  const title = document.querySelector('.hero__title');
-  if (!title) return;
-
-  // Détecter le <br> avant de vider le contenu
-  const brElement = title.querySelector('br');
-  let brAfterWordIndex = -1;
-  let charCount = 0;
-
-  if (brElement) {
-    const nodes = title.childNodes;
-    for (const node of nodes) {
-      if (node === brElement) break;
-      charCount += node.textContent.length;
-    }
-    const textBeforeBr = title.textContent.substring(0, charCount).trim();
-    brAfterWordIndex = textBeforeBr.split(' ').length - 1;
-  }
-
-  const text = title.textContent.trim();
-  title.textContent = '';
-  title.setAttribute('aria-label', text);
-
-  // Le <br> ne produit pas d'espace dans textContent, le réinsérer pour le split
-  const splitText = brAfterWordIndex >= 0
-    ? text.substring(0, charCount) + ' ' + text.substring(charCount)
-    : text;
-
-  const words = splitText.split(' ');
-
-  words.forEach((word, wordIndex) => {
-    const wordSpan = document.createElement('span');
-    wordSpan.style.whiteSpace = 'nowrap';
-
-    [...word].forEach((char) => {
-      const charSpan = document.createElement('span');
-      charSpan.className = 'hero__title-char';
-      charSpan.textContent = char;
-      charSpan.setAttribute('aria-hidden', 'true');
-      wordSpan.appendChild(charSpan);
-    });
-
-    title.appendChild(wordSpan);
-
-    // Réinsérer le <br> après le bon mot
-    if (brAfterWordIndex >= 0 && wordIndex === brAfterWordIndex) {
-      const br = document.createElement('span');
-      br.className = 'hero__title-br';
-      br.setAttribute('aria-hidden', 'true');
-      title.appendChild(br);
-    } else if (wordIndex < words.length - 1) {
-      title.appendChild(document.createTextNode(' '));
-    }
-  });
-
-  if (prefersReducedMotion()) {
-    title.querySelectorAll('.hero__title-char').forEach(c => c.classList.add('visible'));
-    return;
-  }
-
-  title.querySelectorAll('.hero__title-char').forEach((char, i) => {
-    setTimeout(() => {
-      char.classList.add('visible');
-    }, 50 + i * 25);
-  });
-}
-
-function initGlowEffect() {
-  const hero = document.querySelector('.hero');
-  const glow = document.querySelector('.hero__glow');
-  if (!hero || !glow) return;
-
-  if (prefersReducedMotion()) {
-    glow.style.setProperty('--mouse-x', '50%');
-    glow.style.setProperty('--mouse-y', '40%');
-    return;
-  }
-
-  let ticking = false;
-
-  hero.addEventListener('mousemove', (e) => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        const rect = hero.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        glow.style.setProperty('--mouse-x', `${x}%`);
-        glow.style.setProperty('--mouse-y', `${y}%`);
-        ticking = false;
-      });
-      ticking = true;
-    }
   }, { passive: true });
 
-  // Position initiale au centre
-  glow.style.setProperty('--mouse-x', '50%');
-  glow.style.setProperty('--mouse-y', '40%');
+  hero.addEventListener('pointerleave', () => {
+    hero.style.setProperty('--px', '0px');
+    hero.style.setProperty('--py', '0px');
+  });
+}
+
+function initArrivalAttraction(hero) {
+  const cards = [...hero.querySelectorAll('[data-arrival-card]')];
+  cards.forEach((card) => {
+    card.addEventListener('pointermove', (event) => {
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - .5;
+      const y = (event.clientY - rect.top) / rect.height - .5;
+      card.style.setProperty('--card-x', `${x * 14}px`);
+      card.style.setProperty('--card-y', `${y * 10}px`);
+    }, { passive: true });
+    card.addEventListener('pointerleave', () => {
+      card.style.setProperty('--card-x', '0px');
+      card.style.setProperty('--card-y', '0px');
+    });
+  });
+}
+
+function initScrollJourney(hero, loadVideo) {
+  const video = hero.querySelector('[data-hero-scrub]');
+  const source = video?.querySelector('[data-src]');
+  if (!video || !source) return;
+
+  let duration = 0;
+  let frame = null;
+  let targetTime = 0;
+
+  const update = () => {
+    const rect = hero.getBoundingClientRect();
+    const distance = Math.max(hero.offsetHeight - window.innerHeight, 1);
+    const progress = clamp(-rect.top / distance);
+    const expansion = clamp(progress / .28);
+    const arrival = clamp((progress - .69) / .11);
+    const fallback = clamp((progress - .46) / .34);
+
+    hero.style.setProperty('--hero-progress', progress.toFixed(4));
+    hero.dataset.progress = progress.toFixed(4);
+    hero.style.setProperty('--hero-beam-shift', `${(progress * 12).toFixed(2)}%`);
+    hero.style.setProperty('--hero-beam-opacity', Math.max(.35, .85 - progress * .5).toFixed(3));
+    hero.style.setProperty('--hero-copy-opacity', Math.max(0, 1 - progress * 3.2).toFixed(3));
+    hero.style.setProperty('--hero-copy-y', `${(progress * -10).toFixed(2)}vh`);
+    hero.style.setProperty('--hero-launch-opacity', Math.max(0, 1 - progress * 4).toFixed(3));
+    hero.style.setProperty('--hero-cue-opacity', Math.max(0, 1 - progress * 5).toFixed(3));
+    hero.style.setProperty('--hero-art-left', `${(30 * (1 - expansion)).toFixed(2)}%`);
+    hero.style.setProperty('--hero-art-clip', `${(12 * (1 - expansion)).toFixed(2)}%`);
+    hero.style.setProperty('--hero-overlay-opacity', Math.max(0, 1 - progress * 2.8).toFixed(3));
+    hero.style.setProperty('--hero-grid-opacity', Math.max(0, 1 - progress * 3).toFixed(3));
+    hero.style.setProperty('--hero-arrival-opacity', arrival.toFixed(3));
+    hero.style.setProperty('--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
+    hero.style.setProperty('--hero-fallback-opacity', fallback.toFixed(3));
+    if (duration && video.readyState >= video.HAVE_METADATA) {
+      // Les derniers 20 % maintiennent l'arrivée pour laisser le contenu se lire.
+      const timelineProgress = clamp(progress / .8);
+      targetTime = Math.min(duration - .04, timelineProgress * duration);
+      if (!video.seeking && Math.abs(video.currentTime - targetTime) > .025) video.currentTime = targetTime;
+    }
+
+    frame = null;
+  };
+
+  const requestUpdate = () => {
+    if (!frame) frame = requestAnimationFrame(update);
+  };
+
+  video.addEventListener('loadedmetadata', () => {
+    duration = video.duration || 0;
+    video.pause();
+    requestUpdate();
+  }, { once: true });
+
+  video.addEventListener('loadeddata', () => {
+    requestUpdate();
+  }, { once: true });
+
+  video.addEventListener('seeked', () => {
+    if (video.currentTime > .04) hero.classList.add('is-video-ready');
+    if (Math.abs(video.currentTime - targetTime) > .025) video.currentTime = targetTime;
+  });
+
+  const mediaUrl = source.dataset.src;
+  let objectUrl = null;
+
+  const loadMedia = async () => {
+    video.preload = 'auto';
+    try {
+      const response = await fetch(mediaUrl);
+      if (!response.ok) throw new Error(`Video request failed: ${response.status}`);
+      objectUrl = URL.createObjectURL(await response.blob());
+      video.src = objectUrl;
+    } catch {
+      source.src = mediaUrl;
+    }
+    video.load();
+  };
+
+  if (loadVideo) loadMedia();
+  window.addEventListener('pagehide', () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  }, { once: true });
+
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate, { passive: true });
+  requestUpdate();
 }
