@@ -51,6 +51,7 @@
 
 .hero__poster,
 .hero__fallback-end,
+.hero__frame,
 .hero__video {
   position: absolute;
   inset: 0;
@@ -64,10 +65,14 @@
 
 .hero__poster img, .hero__fallback-end img { width: 100%; height: 100%; object-fit: cover; }
 .hero__fallback-end { opacity: var(--hero-fallback-opacity); }
+.hero__frame { opacity: 0; }
 .hero__video { opacity: 0; transition: opacity .45s ease; }
 .hero.is-video-ready .hero__video { opacity: 1; }
 .hero.is-video-ready .hero__poster { opacity: 0; }
 .hero.is-video-ready .hero__fallback-end { opacity: 0; }
+.hero.is-frame-ready .hero__frame { opacity: 1; }
+.hero.is-frame-ready .hero__poster { opacity: 0; }
+.hero.is-frame-ready .hero__fallback-end { opacity: 0; }
 
 .hero__grid {
   position: absolute;
@@ -221,16 +226,20 @@
 @media (max-width: 560px) {
   .hero { min-height: 320svh; }
   .hero__art, .hero__grid, .hero__beam { height: 100%; }
-  .hero__inner { min-height: 100svh; padding-bottom: 3.5rem; }
-  .hero__title { font-size: clamp(3.25rem, 15.8vw, 5rem); line-height: .86; }
+  .hero__inner { min-height: 100svh; justify-content: center; padding: 7.4rem var(--pad) max(3rem, calc(env(safe-area-inset-bottom) + 2.5rem)); }
+  .hero__meta { margin-bottom: 1.15rem; font-size: .7rem; }
+  .hero__title { font-size: clamp(2.65rem, 12.4vw, 4.05rem); line-height: .9; }
+  .hero__line--two { max-width: 8.8ch; }
   .hero__line--three { padding-left: 0; }
-  .hero__line--three em { display: block; padding-left: 12vw; white-space: nowrap; }
+  .hero__line--three em { display: block; padding-left: 8vw; white-space: nowrap; }
   .hero__launch { top: 5.3rem; right: auto; left: var(--pad); display: flex; width: auto; align-items: baseline; gap: .45rem; padding: .38rem .55rem; border: 1px solid #6f6258; background: rgba(18, 17, 20, .72); }
   .hero__launch span { display: none; }
   .hero__launch strong { font: 600 .76rem/1 var(--font-body); }
   .hero__launch a { font-size: .62rem; text-decoration: none; }
-  .hero__lead { max-width: 36ch; }
-  .hero__actions { display: grid; }
+  .hero__bottom { gap: 1rem; margin-top: 1.15rem; }
+  .hero__lead { max-width: 35ch; font-size: .9rem; line-height: 1.55; }
+  .hero__actions { display: grid; gap: .55rem; }
+  .hero__actions .btn { min-height: 46px; padding: .7rem 1rem; font-size: .79rem; }
   .hero__arrival { grid-template-columns: 1fr; gap: .75rem; padding: 5.4rem 1rem 1rem; }
   .hero__arrival-left, .hero__arrival-right { grid-column: 1; }
   .hero__arrival-card { padding: 1.1rem; backdrop-filter: blur(10px); }
@@ -241,7 +250,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero__poster, .hero__fallback-end, .hero__video { transition: transform .7s var(--ease), opacity .45s ease; }
+  .hero__poster, .hero__fallback-end, .hero__frame, .hero__video { transition: transform .7s var(--ease), opacity .45s ease; }
   .hero__arrival-card { transition: transform .5s var(--ease), box-shadow .35s ease; }
   .hero__arrival-card:hover { box-shadow: 0 32px 90px rgba(39, 28, 19, .28), inset 0 1px rgba(255, 255, 255, .85); }
   .service-marquee__track { animation: service-marquee 28s linear infinite; }

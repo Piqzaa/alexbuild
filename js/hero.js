@@ -1,6 +1,8 @@
 import { prefersReducedMotion } from './utils.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+const HERO_FRAME_COUNT = 48;
+const HERO_FRAME_PATH = 'assets/hero-cinematic-frames/frame-';
 
 export function initHero() {
   const hero = document.querySelector('[data-hero]');
@@ -63,6 +65,7 @@ function initScrollJourney(hero, loadVideo) {
   let duration = 0;
   let frame = null;
   let targetTime = 0;
+  const frameScrub = loadVideo ? null : initFrameScrub(hero);
 
   const update = () => {
     const rect = hero.getBoundingClientRect();
@@ -87,6 +90,7 @@ function initScrollJourney(hero, loadVideo) {
     hero.style.setProperty('--hero-arrival-opacity', arrival.toFixed(3));
     hero.style.setProperty('--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
     hero.style.setProperty('--hero-fallback-opacity', fallback.toFixed(3));
+    frameScrub?.(progress);
     if (duration && video.readyState >= video.HAVE_METADATA) {
       // Les derniers 20 % maintiennent l'arrivée pour laisser le contenu se lire.
       const timelineProgress = clamp(progress / .8);
@@ -140,4 +144,52 @@ function initScrollJourney(hero, loadVideo) {
   window.addEventListener('scroll', requestUpdate, { passive: true });
   window.addEventListener('resize', requestUpdate, { passive: true });
   requestUpdate();
+}
+
+function initFrameScrub(hero) {
+  const frameImage = hero.querySelector('[data-hero-frame]');
+  if (!frameImage) return null;
+
+  const loadedFrames = new Set([0]);
+  const frameSources = Array.from({ length: HERO_FRAME_COUNT }, (_, index) => {
+    const number = String(index + 1).padStart(3, '0');
+    return `${HERO_FRAME_PATH}${number}.jpg`;
+  });
+  let currentIndex = 0;
+
+  const preloadFrame = (index) => {
+    if (index < 0 || index >= HERO_FRAME_COUNT || loadedFrames.has(index)) return;
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => loadedFrames.add(index);
+    image.src = frameSources[index];
+  };
+
+  const preloadRange = (from, to) => {
+    for (let index = from; index <= to; index += 1) preloadFrame(index);
+  };
+
+  hero.classList.add('is-frame-ready');
+  preloadRange(1, 14);
+
+  const preloadRest = () => preloadRange(15, HERO_FRAME_COUNT - 1);
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(preloadRest, { timeout: 1600 });
+  } else {
+    setTimeout(preloadRest, 500);
+  }
+
+  return (progress) => {
+    const timelineProgress = clamp(progress / .8);
+    const targetIndex = Math.round(timelineProgress * (HERO_FRAME_COUNT - 1));
+    preloadRange(targetIndex, Math.min(HERO_FRAME_COUNT - 1, targetIndex + 2));
+    if (targetIndex === currentIndex) return;
+
+    let nextIndex = targetIndex;
+    while (nextIndex > 0 && !loadedFrames.has(nextIndex)) nextIndex -= 1;
+    if (nextIndex === currentIndex) return;
+
+    currentIndex = nextIndex;
+    frameImage.src = frameSources[currentIndex];
+  };
 }
