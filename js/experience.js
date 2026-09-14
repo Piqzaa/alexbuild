@@ -3,6 +3,7 @@ import { prefersReducedMotion } from './utils.js';
 export function initExperience() {
   initComparison();
   initProjectDepth();
+  initProjectPreviews();
   initOfferAccordion();
 }
 
@@ -56,6 +57,52 @@ function initProjectDepth() {
     project.addEventListener('pointerleave', () => {
       plane.style.setProperty('--tilt-x', '0deg');
       plane.style.setProperty('--tilt-y', '0deg');
+    });
+  });
+}
+
+function initProjectPreviews() {
+  const canPreview = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const saveData = navigator.connection?.saveData === true;
+  if (!canPreview || saveData || prefersReducedMotion()) return;
+
+  document.querySelectorAll('[data-project-media]').forEach((media) => {
+    const video = media.querySelector('video');
+    const source = video?.querySelector('source[data-src]');
+    if (!video || !source) return;
+
+    let active = false;
+    let loaded = false;
+
+    const startPreview = async () => {
+      active = true;
+      if (!loaded) {
+        source.src = source.dataset.src;
+        source.removeAttribute('data-src');
+        video.load();
+        loaded = true;
+      }
+
+      try {
+        await video.play();
+        if (active) media.classList.add('is-playing');
+      } catch {
+        media.classList.remove('is-playing');
+      }
+    };
+
+    const stopPreview = () => {
+      active = false;
+      media.classList.remove('is-playing');
+      video.pause();
+      if (video.readyState > 0) video.currentTime = 0;
+    };
+
+    media.addEventListener('pointerenter', startPreview);
+    media.addEventListener('pointerleave', stopPreview);
+    video.addEventListener('error', stopPreview);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopPreview();
     });
   });
 }
