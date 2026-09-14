@@ -3,3 +3,14 @@
 .contact__grid{align-items:start}.contact__statement{position:sticky;top:8rem}.contact__statement>p:not(.chapter){max-width:42ch;margin-top:1.5rem;color:#c6bfb9}.contact__form{position:relative;z-index:1;padding:clamp(1.2rem,3vw,2.5rem);background:#201d21;border:1px solid #554b51;box-shadow:0 32px 80px rgba(0,0,0,.26)}.contact__fields{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}.contact__form label{display:grid;gap:.45rem;color:#d8d1ca;font-size:.68rem;font-weight:650}.contact__form input,.contact__form select,.contact__form textarea{width:100%;min-height:50px;padding:.8rem;color:#f4eee8;background:#171519;border:1px solid #5d5358;border-radius:0;font:inherit}.contact__form select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#cda776 50%),linear-gradient(135deg,#cda776 50%,transparent 50%);background-position:calc(100% - 16px) 21px,calc(100% - 11px) 21px;background-size:5px 5px;background-repeat:no-repeat}.contact__form textarea{min-height:130px;resize:vertical}.contact__form input:focus,.contact__form select:focus,.contact__form textarea:focus{outline:2px solid var(--gold-light);outline-offset:2px;border-color:var(--gold-light)}.contact__message{grid-column:1/-1}.contact__consent{display:grid!important;grid-template-columns:1rem 1fr;gap:.7rem;align-items:start;margin:1.2rem 0;color:#bfb7b1!important;line-height:1.5}.contact__consent input{width:1rem;height:1rem;min-height:0;margin-top:.15rem;accent-color:var(--gold)}.contact__consent a{color:var(--gold-light);text-decoration:underline;text-underline-offset:2px}.contact__submit{display:flex;align-items:center;gap:1rem}.contact__submit span{color:#c9c1ba;font-size:.72rem}.contact__form.is-success{border-color:#8ba183}.contact__form.is-success .contact__submit span{color:#bad0b4}
 @media(max-width:920px){.contact__statement{position:relative;top:auto}.contact__grid{grid-template-columns:1fr}.contact__statement h2{font-size:clamp(3.3rem,10vw,6rem)}}
 @media(max-width:560px){.contact__fields{grid-template-columns:1fr}.contact__message{grid-column:auto}.contact__submit{align-items:stretch;flex-direction:column}.contact__submit .btn{width:100%}}
+
+.contact__consent{grid-template-columns:1.25rem 1fr;gap:.95rem}
+.contact__consent input{width:1.15rem;height:1.15rem;margin-top:.22rem}
+.contact__fields--simple .contact__need,
+.contact__fields--simple .contact__message{grid-column:1/-1}
+.contact__fields--simple textarea{min-height:160px}
+
+@media(max-width:560px){
+  .contact__consent{grid-template-columns:1.35rem 1fr;gap:1rem;font-size:.76rem}
+  .contact__consent input{width:1.2rem;height:1.2rem}
+}

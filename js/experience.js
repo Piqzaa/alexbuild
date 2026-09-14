@@ -10,7 +10,35 @@ function initComparison() {
   const comparison = document.querySelector('[data-compare]');
   const range = comparison?.querySelector('[data-compare-range]');
   if (!comparison || !range) return;
-  range.addEventListener('input', () => comparison.style.setProperty('--split', `${range.value}%`));
+
+  const setSplit = (value) => {
+    const split = Math.min(88, Math.max(12, value));
+    range.value = String(Math.round(split));
+    comparison.style.setProperty('--split', `${split}%`);
+  };
+
+  const updateFromClientX = (clientX) => {
+    const rect = comparison.getBoundingClientRect();
+    setSplit(((clientX - rect.left) / rect.width) * 100);
+  };
+
+  range.addEventListener('input', () => setSplit(Number(range.value)));
+  comparison.addEventListener('pointerdown', (event) => {
+    if (!event.isPrimary) return;
+    comparison.classList.add('is-dragging');
+    comparison.setPointerCapture(event.pointerId);
+    updateFromClientX(event.clientX);
+  });
+  comparison.addEventListener('pointermove', (event) => {
+    if (!comparison.classList.contains('is-dragging') || !event.isPrimary) return;
+    updateFromClientX(event.clientX);
+  });
+  const stopDrag = (event) => {
+    comparison.classList.remove('is-dragging');
+    if (comparison.hasPointerCapture(event.pointerId)) comparison.releasePointerCapture(event.pointerId);
+  };
+  comparison.addEventListener('pointerup', stopDrag);
+  comparison.addEventListener('pointercancel', stopDrag);
 }
 
 function initProjectDepth() {

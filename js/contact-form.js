@@ -28,12 +28,9 @@ export function initContactForm() {
           _template: 'table',
           _captcha: 'false',
           _replyto: String(data.get('email')).trim(),
-          Nom: data.get('name'),
+          'Nom / entreprise': data.get('name'),
           Email: data.get('email'),
-          Entreprise: data.get('business') || 'Non indiquée',
           Besoin: data.get('project_type'),
-          'Situation actuelle': data.get('website_status'),
-          Budget: data.get('budget') || 'À définir',
           Message: data.get('message'),
           Consentement: data.get('consent') ? 'Accepté' : 'Non',
           Source: 'Formulaire projet AlexBuild — offre de lancement'

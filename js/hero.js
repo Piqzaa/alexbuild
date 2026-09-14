@@ -1,7 +1,7 @@
 import { prefersReducedMotion } from './utils.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const HERO_FRAME_COUNT = 48;
+const HERO_FRAME_COUNT = 80;
 const HERO_FRAME_PATH = 'assets/hero-cinematic-frames/frame-';
 
 export function initHero() {
@@ -151,6 +151,7 @@ function initFrameScrub(hero) {
   if (!frameImage) return null;
 
   const loadedFrames = new Set([0]);
+  const loadingFrames = new Set();
   const frameSources = Array.from({ length: HERO_FRAME_COUNT }, (_, index) => {
     const number = String(index + 1).padStart(3, '0');
     return `${HERO_FRAME_PATH}${number}.jpg`;
@@ -158,10 +159,15 @@ function initFrameScrub(hero) {
   let currentIndex = 0;
 
   const preloadFrame = (index) => {
-    if (index < 0 || index >= HERO_FRAME_COUNT || loadedFrames.has(index)) return;
+    if (index < 0 || index >= HERO_FRAME_COUNT || loadedFrames.has(index) || loadingFrames.has(index)) return;
+    loadingFrames.add(index);
     const image = new Image();
     image.decoding = 'async';
-    image.onload = () => loadedFrames.add(index);
+    image.onload = () => {
+      loadedFrames.add(index);
+      loadingFrames.delete(index);
+    };
+    image.onerror = () => loadingFrames.delete(index);
     image.src = frameSources[index];
   };
 
@@ -170,19 +176,19 @@ function initFrameScrub(hero) {
   };
 
   hero.classList.add('is-frame-ready');
-  preloadRange(1, 14);
+  preloadRange(1, 18);
 
-  const preloadRest = () => preloadRange(15, HERO_FRAME_COUNT - 1);
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(preloadRest, { timeout: 1600 });
-  } else {
-    setTimeout(preloadRest, 500);
-  }
+  let warmupIndex = 19;
+  const warmupTimer = setInterval(() => {
+    preloadRange(warmupIndex, Math.min(HERO_FRAME_COUNT - 1, warmupIndex + 5));
+    warmupIndex += 6;
+    if (warmupIndex >= HERO_FRAME_COUNT) clearInterval(warmupTimer);
+  }, 850);
 
   return (progress) => {
     const timelineProgress = clamp(progress / .8);
     const targetIndex = Math.round(timelineProgress * (HERO_FRAME_COUNT - 1));
-    preloadRange(targetIndex, Math.min(HERO_FRAME_COUNT - 1, targetIndex + 2));
+    preloadRange(Math.max(0, targetIndex - 1), Math.min(HERO_FRAME_COUNT - 1, targetIndex + 8));
     if (targetIndex === currentIndex) return;
 
     let nextIndex = targetIndex;

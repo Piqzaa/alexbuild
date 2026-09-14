@@ -16,3 +16,66 @@
 @media(max-width:600px){.work__heading{margin-bottom:3rem}.work__heading h2{font-size:13vw}.work__stack{gap:1.5rem}.project__visual{min-height:330px;padding:1rem}.project__copy{min-height:0;padding:2rem 1.25rem}.food-ui,.pet-ui{min-height:280px;padding:1.5rem}.food-ui strong,.pet-ui strong,.job-ui strong{font-size:1.75rem}.food-ui__plate{display:none}.food-ui{grid-template-columns:1fr}.pet-ui{grid-template-columns:.7fr 1fr;gap:1rem}.job-ui{min-height:280px;grid-template-columns:44px 1fr}.job-ui>div{padding:1.5rem}.project__index{font-size:3rem}}
 @media(prefers-reduced-motion:no-preference){.project__browser{transition:transform .45s var(--ease)}.project:hover .project__browser{box-shadow:0 40px 95px rgba(0,0,0,.48)}}
 .project__copy h3{max-width:100%;overflow-wrap:anywhere}.project--pet .project__copy h3{font-size:clamp(2.15rem,3.6vw,3.65rem)}
+
+@media(max-width:600px){
+  .work{overflow:hidden}
+  .work__stack{gap:2.4rem}
+  .project{overflow:visible;border-color:#554b50;background:transparent;box-shadow:none}
+  .project__visual{
+    position:relative;
+    min-height:340px;
+    border:1px solid #4e464b;
+    box-shadow:0 30px 80px rgba(0,0,0,.28);
+  }
+  .project__visual::before{
+    content:"";
+    position:absolute;
+    inset:1rem;
+    border:1px solid rgba(227,189,145,.16);
+    pointer-events:none;
+  }
+  .project__browser{
+    width:min(112%,520px);
+    transform:translate3d(0,var(--project-float,0),0) rotate(var(--project-rotate,-1deg));
+    transform-origin:center;
+  }
+  .project:nth-child(2) .project__browser{--project-rotate:1.5deg}
+  .project:nth-child(3) .project__browser{--project-rotate:-1.2deg}
+  .project__copy{
+    z-index:2;
+    width:calc(100% - 1.5rem);
+    margin:-2.2rem auto 0;
+    padding:1.35rem;
+    background:rgba(27,25,29,.82);
+    border:1px solid rgba(227,189,145,.18);
+    box-shadow:0 18px 48px rgba(0,0,0,.28);
+    backdrop-filter:blur(16px);
+  }
+  .project__copy h3{font-size:clamp(2.05rem,10vw,3rem)}
+  .project__copy>p:not(.project__type){font-size:.84rem}
+  .food-ui,.pet-ui,.job-ui{min-height:300px}
+  .food-ui strong,.pet-ui strong,.job-ui strong{font-size:clamp(1.85rem,8vw,2.5rem)}
+}
+
+@media(max-width:600px) and (prefers-reduced-motion:no-preference){
+  .project.reveal{transform:translateY(28px) scale(.97)}
+  .project.reveal.visible{transform:none}
+  .project__browser{animation:project-mobile-float 4.5s ease-in-out infinite alternate}
+  .project:nth-child(2) .project__browser{animation-delay:.35s}
+  .project:nth-child(3) .project__browser{animation-delay:.7s}
+  .job-ui__chart i{animation:project-bars 1.9s ease-in-out infinite alternate}
+  .job-ui__chart i:nth-child(2){animation-delay:.12s}
+  .job-ui__chart i:nth-child(3){animation-delay:.24s}
+  .job-ui__chart i:nth-child(4){animation-delay:.36s}
+  .pet-ui__tiles{animation:project-tiles 4s ease-in-out infinite alternate}
+
+  @keyframes project-mobile-float{
+    to{transform:translate3d(0,-10px,0) rotate(calc(var(--project-rotate,-1deg) * -1))}
+  }
+  @keyframes project-bars{
+    to{transform:scaleY(.78);transform-origin:bottom}
+  }
+  @keyframes project-tiles{
+    to{transform:rotate(3deg) translateY(-8px)}
+  }
+}

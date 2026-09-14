@@ -5,3 +5,49 @@
 @media(max-width:900px){.pricing__head{grid-template-columns:1fr}.offer summary{grid-template-columns:1fr auto;gap:.6rem 1rem}.offer__fit{grid-column:1}.offer__price{grid-column:1;grid-row:3}.offer__toggle{grid-column:2;grid-row:1/4}.offer__body{grid-template-columns:1fr;padding:0 0 2rem}.launch__grid{grid-template-columns:.7fr 1fr}.launch__benefits{grid-column:1/-1}.launch__rule{left:41%}.launch__seal{width:220px}}
 @media(max-width:600px){.pricing__head{margin-bottom:2rem}.offer summary{min-height:150px}.offer__body ul{grid-template-columns:1fr}.launch__grid{grid-template-columns:1fr}.launch__playground{min-height:380px}.launch__seal{width:210px}.launch__rule{display:none}.launch__benefits{grid-column:auto}.offer--featured::before{left:0}}
 @media(prefers-reduced-motion:no-preference){.offer summary{transition:padding .35s var(--ease),background .25s}.offer summary:hover{padding-left:1rem;padding-right:1rem}.offer__toggle::after{transition:transform .3s var(--ease)}.launch__seal{animation:launch-float 4s ease-in-out infinite alternate}.launch__orbit--one{animation:launch-drift 3.6s ease-in-out infinite alternate}.launch__orbit--two{animation:launch-drift 4.4s .4s ease-in-out infinite alternate-reverse}.launch__orbit--three{animation:launch-drift 3.9s .2s ease-in-out infinite alternate}@keyframes launch-float{to{transform:translate(-50%,-54%) rotate(-4deg)}}@keyframes launch-drift{to{margin-top:-10px}}}
+
+.offer__details{padding:1rem;border-left:2px solid var(--gold-dark);background:rgba(138,91,50,.07)}
+.offer__details span{display:block;margin-bottom:.35rem;color:var(--gold-dark);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.offer__details strong{display:block;color:#36302b;font-size:.82rem;font-weight:600;line-height:1.55}
+.offer__body>p{grid-column:1;grid-row:1}
+.offer__details{grid-column:1;grid-row:2}
+.offer__body ul{grid-column:2;grid-row:1 / span 2}
+.offer__body .btn{grid-column:3;grid-row:1}
+
+@media(max-width:900px){
+  .offer summary{padding-left:1rem;padding-right:1rem}
+  .offer__body{gap:1.1rem;padding:0 1rem 2rem}
+  .offer__body>p,.offer__details,.offer__body ul,.offer__body .btn{grid-column:auto;grid-row:auto}
+  .offer__badge{left:1rem}
+  .offer--featured::before{left:0}
+}
+
+@media(max-width:600px){
+  .offer summary{min-height:0;padding:1.25rem 1rem}
+  .offer__name{font-size:clamp(1.55rem,8vw,2.15rem)}
+  .offer__fit{max-width:28ch}
+  .offer__price strong{font-size:1.55rem}
+  .offer__body{padding:0 1rem 1.8rem}
+  .offer__body p{font-size:.82rem}
+  .offer__body ul{gap:.5rem}
+  .offer__details{padding:.9rem}
+  .launch{overflow:hidden}
+  .launch__grid{gap:1.6rem}
+  .launch__playground{
+    min-height:320px;
+    overflow:visible;
+    transform:translateX(-.25rem);
+  }
+  .launch__playground::before{inset:8% 16%;transform:rotate(18deg)}
+  .launch__playground::after{inset:19% 11%;transform:rotate(-25deg)}
+  .launch__seal{
+    width:min(58vw,205px);
+    left:50%;
+  }
+  .launch__seal span{font-size:clamp(4.2rem,21vw,6rem)}
+  .launch__seal::after{font-size:.45rem;letter-spacing:.08em}
+  .launch__orbit{max-width:46vw;padding:.55rem .7rem}
+  .launch__orbit--one{right:.25rem;top:6%}
+  .launch__orbit--two{left:.2rem;bottom:7%}
+  .launch__orbit--three{right:.15rem;bottom:19%;font-size:.9rem}
+}
