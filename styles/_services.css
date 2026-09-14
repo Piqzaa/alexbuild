@@ -9,6 +9,7 @@
 .offer__details{padding:1rem;border-left:2px solid var(--gold-dark);background:rgba(138,91,50,.07)}
 .offer__details span{display:block;margin-bottom:.35rem;color:var(--gold-dark);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
 .offer__details strong{display:block;color:#36302b;font-size:.82rem;font-weight:600;line-height:1.55}
+.launch__seal small{align-self:center;margin-left:.34rem;transform:translateY(-.9rem);font-size:clamp(1.15rem,2.2vw,1.65rem)}
 .offer--featured summary{padding-top:2.35rem}
 .offer__badge{top:.9rem}
 .offer__body>p{grid-column:1;grid-row:1}
