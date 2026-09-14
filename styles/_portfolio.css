@@ -1,138 +1,18 @@
-.portfolio {
-  background-color: var(--color-parchemin);
-}
-
-.portfolio__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-md);
-}
-
-@media (min-width: 768px) {
-  .portfolio__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-/* Portfolio card — editorial, pas de radius */
-.portfolio-card {
-  background-color: white;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 2px;
-  overflow: hidden;
-  transition: border-color 0.2s var(--ease-out);
-}
-
-.portfolio-card:hover {
-  border-color: var(--color-laiton);
-}
-
-.portfolio-card__visual {
-  height: 180px;
-  background-color: var(--color-ink);
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  position: relative;
-  overflow: hidden;
-  padding: var(--space-md);
-}
-
-/* Texture grille fine */
-.portfolio-card__visual::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(196, 149, 106, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196, 149, 106, 0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Masquer la grille quand il y a une image */
-.portfolio-card__visual:has(.portfolio-card__img)::before {
-  display: none;
-}
-
-/* Image du projet */
-.portfolio-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: relative;
-  z-index: 1;
-}
-
-/* Supprimer le padding quand il y a une image */
-.portfolio-card__visual:has(.portfolio-card__img) {
-  padding: 0;
-}
-
-/* Icône — texte brut, pas de cercle rond */
-.portfolio-card__icon {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.portfolio-card__body {
-  padding: var(--space-md);
-  padding-top: var(--space-sm);
-}
-
-.portfolio-card__type {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--color-laiton);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: var(--space-xs);
-}
-
-.portfolio-card__type::before {
-  content: '';
-  width: 8px;
-  height: 1px;
-  background: var(--color-laiton);
-}
-
-.portfolio-card h3 {
-  font-size: 1.1rem;
-  color: var(--color-text-dark);
-  margin-bottom: 0.3rem;
-}
-
-.portfolio-card p {
-  font-size: 0.82rem;
-  color: #6B6560;
-  line-height: 1.65;
-}
-
-/* Featured card — pleine largeur avec layout horizontal, débordement asymétrique */
-.portfolio-card--featured {
-  grid-column: 1 / -1;
-}
-
-@media (min-width: 768px) {
-  .portfolio-card--featured {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-left: -2rem;
-    margin-right: -1rem;
-  }
-
-  .portfolio-card--featured .portfolio-card__visual {
-    height: 100%;
-    min-height: 240px;
-  }
-}
-
-/* Dernier card — variante visuelle */
-.portfolio-card:last-child .portfolio-card__visual {
-  background: linear-gradient(135deg, var(--color-ink), var(--color-ink-light));
-}
+.work{background:var(--ink);padding-bottom:12rem}
+.work__heading{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:5rem}.work__heading .chapter{grid-column:1/-1}.work__heading h2{color:var(--white);font-size:clamp(3rem,7vw,6.5rem)}.work__heading>p:last-child{max-width:45ch;align-self:end;color:var(--muted-light)}
+.work__stack{display:grid;gap:3rem}
+.project{position:sticky;top:6.5rem;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.72fr);min-height:650px;overflow:hidden;border:1px solid #4b4448;background:var(--ink-2);box-shadow:0 -15px 70px rgba(0,0,0,.28)}
+.project:nth-child(2){top:7.6rem}.project:nth-child(3){top:8.7rem}
+.project__visual{display:grid;min-width:0;place-items:center;padding:clamp(1.5rem,4vw,4rem);overflow:hidden;background:#231f1e}
+.project--pet .project__visual{background:#d7c0ae}.project--job .project__visual{background:#181c23}
+.project__browser{width:min(100%,800px);overflow:hidden;border:1px solid rgba(255,255,255,.32);background:#151416;box-shadow:0 32px 75px rgba(0,0,0,.38);transform:perspective(1200px) rotateY(var(--tilt-x,0deg)) rotateX(var(--tilt-y,0deg))}
+.project__browser-bar{display:flex;height:34px;align-items:center;gap:6px;padding:0 12px;color:#bcb6b0;background:#1b191c;border-bottom:1px solid #413b3f}.project__browser-bar>span{width:5px;height:5px;border-radius:50%;background:#9b938e}.project__browser-bar small{margin-left:auto;color:#aaa39e;font-size:.58rem}
+.project__copy{position:relative;display:flex;flex-direction:column;justify-content:center;padding:clamp(2rem,4vw,4rem);color:var(--text-light);background:var(--ink-2)}
+.project__index{position:absolute;top:1.5rem;right:1.5rem;color:#665e61;font:500 4rem/1 var(--font-display)}.project__type{color:var(--gold-light);font-size:.72rem;font-weight:600}.project__copy h3{margin:.6rem 0 1.2rem;color:var(--white);font-size:clamp(2.4rem,4vw,4rem)}.project__copy>p:not(.project__type){color:#c9c3bd;font-size:.92rem}.project__copy ul{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:2rem}.project__copy li{padding:.35rem .55rem;color:#d7d1ca;border:1px solid #5f5659;font-size:.66rem}
+.food-ui{display:grid;grid-template-columns:1fr .8fr;min-height:400px;padding:clamp(2rem,5vw,4rem);background:#ece3d4}.food-ui small{color:#8a3e27;font-size:.7rem;font-weight:700}.food-ui strong{display:block;margin-top:3rem;color:#291d18;font:500 clamp(2rem,4vw,4.5rem)/.95 var(--font-display)}.food-ui>div>i{display:block;width:6rem;height:2px;margin-top:2rem;background:#a94e2d}.food-ui__plate{display:grid;place-items:center}.food-ui__plate span{display:block;width:min(18vw,190px);aspect-ratio:1;border:18px solid #f9f1e5;border-radius:50%;background:radial-gradient(circle at 45% 40%,#c77a42 0 12%,#6d8a45 13% 23%,#e0b064 24% 34%,#733c2d 35% 47%,#eee0ca 48%);box-shadow:0 20px 38px rgba(67,38,22,.25)}
+.pet-ui{display:grid;grid-template-columns:1fr .9fr;min-height:400px;align-items:center;gap:2rem;padding:clamp(2rem,4vw,4rem);background:#f8f3ee}.pet-ui__tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;transform:rotate(-4deg)}.pet-ui__tiles i{aspect-ratio:1;background:#d18b68}.pet-ui__tiles i:nth-child(2n){background:#7b594d}.pet-ui__tiles i:nth-child(3n){background:#e9c7ad}.pet-ui small{color:#765442}.pet-ui strong{display:block;margin:1rem 0;color:#332824;font:500 clamp(1.8rem,3.4vw,3.3rem)/1 var(--font-display)}.pet-ui button{padding:.7rem 1rem;color:#fff;background:#7a4f3e;border:0}
+.job-ui{display:grid;grid-template-columns:62px 1fr;min-height:400px;color:#eff3f8;background:#202631}.job-ui aside{display:flex;align-items:center;flex-direction:column;gap:1.2rem;padding:1.4rem .8rem;background:#151a22}.job-ui aside b{color:#deb374}.job-ui aside i{width:20px;height:2px;background:#69717d}.job-ui>div{padding:clamp(2rem,5vw,4rem)}.job-ui small{color:#99a6b5}.job-ui strong{display:block;margin:2rem 0;color:#f4f6f8;font:500 clamp(2rem,4vw,4rem)/1 var(--font-display)}.job-ui__chart{display:flex;height:100px;align-items:flex-end;gap:8px;border-bottom:1px solid #68717d}.job-ui__chart i{flex:1;height:40%;background:#bc884f}.job-ui__chart i:nth-child(2){height:70%}.job-ui__chart i:nth-child(3){height:52%}.job-ui__chart i:nth-child(4){height:88%}.job-ui__chart i:nth-child(5){height:76%}
+@media(max-width:900px){.work{padding-bottom:var(--section)}.work__heading{grid-template-columns:1fr}.work__heading .chapter{grid-column:auto}.project,.project:nth-child(2),.project:nth-child(3){position:relative;top:auto;grid-template-columns:1fr;min-height:0}.project__visual{min-height:470px}.project__copy{min-height:380px}}
+@media(max-width:600px){.work__heading{margin-bottom:3rem}.work__heading h2{font-size:13vw}.work__stack{gap:1.5rem}.project__visual{min-height:330px;padding:1rem}.project__copy{min-height:0;padding:2rem 1.25rem}.food-ui,.pet-ui{min-height:280px;padding:1.5rem}.food-ui strong,.pet-ui strong,.job-ui strong{font-size:1.75rem}.food-ui__plate{display:none}.food-ui{grid-template-columns:1fr}.pet-ui{grid-template-columns:.7fr 1fr;gap:1rem}.job-ui{min-height:280px;grid-template-columns:44px 1fr}.job-ui>div{padding:1.5rem}.project__index{font-size:3rem}}
+@media(prefers-reduced-motion:no-preference){.project__browser{transition:transform .45s var(--ease)}.project:hover .project__browser{box-shadow:0 40px 95px rgba(0,0,0,.48)}}
+.project__copy h3{max-width:100%;overflow-wrap:anywhere}.project--pet .project__copy h3{font-size:clamp(2.15rem,3.6vw,3.65rem)}

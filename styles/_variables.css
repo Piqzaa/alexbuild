@@ -1,34 +1,33 @@
 :root {
-  /* Palette — AlexBuild "Atelier de précision" */
-  --color-ink: #1C1A1E;
-  --color-ink-light: #252328;
-  --color-laiton: #C4956A;
-  --color-laiton-glow: #D4A87A;
-  --color-parchemin: #F5F3EE;
-  --color-parchemin-dark: #E8E4DC;
-  --color-text-light: #E8E4DF;
-  --color-text-dark: #2D2A26;
-  --color-text-muted: #9EA3AB;
-  --color-border-subtle: #353236;
-
-  /* Typographie */
+  --ink: #121114;
+  --ink-2: #1b191d;
+  --ink-3: #262329;
+  --paper: #f1eee7;
+  --paper-2: #e5e0d6;
+  --white: #faf8f3;
+  --gold: #d2a36f;
+  --gold-light: #e3bd91;
+  --gold-dark: #8a5b32;
+  --text-light: #f0ece6;
+  --muted-light: #bdb7b1;
+  --text-dark: #292622;
+  --muted-dark: #625c56;
+  --line-dark: #403a40;
+  --line-light: #bdb5a9;
   --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-
-  /* Echelle mobile-first */
-  --space-xs: 0.5rem;
+  --font-body: 'Inter', Arial, sans-serif;
+  --container: 1240px;
+  --pad: clamp(1rem, 4vw, 3rem);
+  --section: clamp(5.5rem, 11vw, 10rem);
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  /* Alias conservés pour les pages légales */
+  --color-ink: var(--ink);
+  --color-laiton: var(--gold);
+  --color-laiton-glow: var(--gold-light);
+  --color-text-light: var(--text-light);
+  --color-text-muted: var(--muted-light);
+  --color-border-subtle: var(--line-dark);
   --space-sm: 1rem;
-  --space-md: 1.5rem;
   --space-lg: 2.5rem;
   --space-xl: 4rem;
-  --space-2xl: 6rem;
-
-  /* Breakpoints (pour référence, utilisés en media queries) */
-  --bp-tablet: 768px;
-  --bp-desktop: 1024px;
-  --bp-wide: 1280px;
-
-  /* Transitions */
-  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
