@@ -1,0 +1,171 @@
+/* Focused September refinements: project titles, spatial backgrounds and hero transition. */
+
+/* Project names must never break inside a word on narrow desktop columns. */
+.project__copy h3{
+  max-width:none;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:none;
+}
+
+@media(min-width:901px){
+  .project__copy h3{
+    white-space:nowrap;
+    font-size:clamp(2.25rem,3.15vw,2.95rem);
+    letter-spacing:-.045em;
+  }
+  .project--food .project__copy h3{font-size:clamp(2rem,2.35vw,2.08rem)}
+  .project--pet .project__copy h3{font-size:clamp(2.15rem,2.7vw,2.65rem)}
+}
+
+/* The offer list sits on a quiet architectural drawing rather than a flat sheet. */
+.pricing{
+  isolation:isolate;
+  background-color:var(--paper);
+  background-image:url('../assets/pricing-field.svg');
+  background-position:center top;
+  background-size:cover;
+}
+.pricing::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:linear-gradient(90deg,rgba(241,238,231,.95) 0%,rgba(241,238,231,.72) 55%,rgba(241,238,231,.32));
+  pointer-events:none;
+}
+.offers{
+  background:rgba(244,241,234,.66);
+  box-shadow:0 24px 80px rgba(46,37,29,.06);
+  backdrop-filter:blur(3px);
+}
+
+/* The method section uses the same routed-line language in its dark register. */
+.method{
+  isolation:isolate;
+  background-color:var(--ink);
+  background-image:url('../assets/process-field.svg');
+  background-position:center;
+  background-size:cover;
+}
+.method::before{
+  z-index:-1;
+  background:
+    radial-gradient(circle at 18% 24%,rgba(227,189,145,.11),transparent 18rem),
+    linear-gradient(180deg,rgba(18,17,20,.1),rgba(18,17,20,.68));
+}
+.method__track article{
+  background:linear-gradient(145deg,rgba(38,34,39,.9),rgba(20,19,22,.76));
+  backdrop-filter:blur(7px);
+}
+.method__deliverables,.aftercare{position:relative}
+
+/* Make the redesign demonstration the visual centre of its section. */
+.redesign__grid{
+  display:block;
+}
+.redesign__copy{
+  display:block;
+  margin-bottom:clamp(3rem,6vw,5rem);
+}
+.redesign__copy h2{max-width:none;margin:0}
+.redesign__copy>p:not(.chapter):not(.redesign__price){max-width:62ch;margin-top:2rem}
+.redesign__demo{width:min(100%,1180px);margin-inline:auto}
+.redesign .compare{
+  height:auto;
+  aspect-ratio:16/10;
+  max-height:none;
+  box-shadow:0 42px 100px rgba(42,34,27,.2);
+}
+.redesign .compare__screen img{object-fit:cover}
+.redesign__demo-note{text-align:center}
+.redesign__cta{display:flex;flex-direction:column;align-items:center;margin-top:1.6rem;padding-top:1.4rem;border-top:1px solid rgba(80,66,53,.28)}
+.redesign__cta .btn{width:max-content}
+.redesign__cta .redesign__price{margin:.8rem 0 0;text-align:center}
+
+/* Desktop gets the same airy, cloud-like arrival as mobile. */
+@media(min-width:901px){
+  .hero__arrival{
+    grid-template-columns:minmax(300px,.9fr) minmax(90px,.35fr) minmax(330px,1fr);
+    padding-inline:clamp(4rem,8vw,9rem);
+  }
+  .hero__arrival-card{
+    position:relative;
+    width:min(100%,460px);
+    border-color:rgba(255,238,213,.42);
+    background:rgba(248,243,235,.62);
+    box-shadow:0 34px 100px rgba(39,28,19,.2),inset 0 1px rgba(255,255,255,.72);
+    backdrop-filter:blur(22px) saturate(.88);
+  }
+  .hero__arrival-left{
+    justify-self:end;
+    border-radius:54% 46% 52% 48% / 48% 54% 46% 52%;
+    padding:clamp(3rem,4.5vw,4.8rem) clamp(4rem,5vw,5.4rem);
+    --cloud-tilt:-2deg;
+  }
+  .hero__arrival-right{
+    justify-self:start;
+    width:min(100%,500px);
+    border-radius:46% 54% 48% 52% / 55% 44% 56% 45%;
+    padding:clamp(2.8rem,4vw,4.4rem) clamp(3.8rem,5vw,5.2rem);
+    --cloud-tilt:2deg;
+  }
+  .hero__arrival-left::after,.hero__arrival-right::after{
+    content:"";
+    position:absolute;
+    width:38px;
+    aspect-ratio:1;
+    border:1px solid rgba(116,91,65,.34);
+    border-radius:50%;
+    background:rgba(248,243,235,.44);
+    box-shadow:0 12px 35px rgba(39,28,19,.12);
+  }
+  .hero__arrival-left::after{right:-54px;bottom:18%}
+  .hero__arrival-right::after{left:-50px;top:14%;width:26px}
+  .hero__arrival-card{box-sizing:border-box}
+  .hero__arrival-left h2{max-width:7ch}
+  .hero__arrival-right>p{max-width:34ch}
+}
+
+@media(min-width:901px) and (prefers-reduced-motion:no-preference){
+  .hero__arrival-left{animation:hero-cloud-desktop-left 5.6s ease-in-out infinite alternate}
+  .hero__arrival-right{animation:hero-cloud-desktop-right 6.2s .35s ease-in-out infinite alternate}
+  @keyframes hero-cloud-desktop-left{
+    from{transform:translate3d(var(--card-x),var(--card-y),0) rotate(-2deg)}
+    to{transform:translate3d(calc(var(--card-x) + 12px),calc(var(--card-y) - 12px),0) rotate(.5deg)}
+  }
+  @keyframes hero-cloud-desktop-right{
+    from{transform:translate3d(var(--card-x),var(--card-y),0) rotate(2deg)}
+    to{transform:translate3d(calc(var(--card-x) - 10px),calc(var(--card-y) - 9px),0) rotate(-.5deg)}
+  }
+}
+
+/* Launch medal: one canvas, static fallback, no independent text rotation. */
+.launch__playground{display:grid;place-items:center}
+.launch__playground::before,.launch__playground::after,.launch__playground>i{display:none}
+.launch__sphere-shell{position:relative;width:min(32vw,380px);aspect-ratio:1;display:grid;place-items:center;background:none;box-shadow:none}
+.launch__sphere-shell::before,.launch__sphere-shell::after{display:none}
+.launch__webgl{position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;border:0;box-shadow:none;opacity:1;pointer-events:none}
+.launch__seal{position:relative;top:auto;left:auto;width:68%;aspect-ratio:1;border-radius:50%;transform:none;animation:none;background:linear-gradient(135deg,#f1dfbd,#b59769);box-shadow:inset 0 0 0 5px #d5b784,inset 0 0 0 8px #806b4a}
+.launch__seal::after,.launch__seal-edge,.launch__seal-face--back{display:none}
+.launch__seal-face{display:flex;align-items:center;justify-content:center;gap:.45rem}
+.launch__seal-face b{font:600 clamp(3rem,5vw,5rem)/1 var(--font-display);color:#352b20;letter-spacing:-.04em}
+.launch__seal-face small{color:#352b20;font:600 1.6rem/1 var(--font-display)}
+.launch__sphere-shell.is-webgl .launch__seal{display:none}
+.launch__sphere-kicker,.launch__sphere-index{position:absolute;left:50%;transform:translateX(-50%);color:#d9c9aa;font-size:.55rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+.launch__sphere-kicker{top:0}
+.launch__sphere-index{bottom:0}
+.launch::after{background:radial-gradient(ellipse at 20% 50%,rgba(210,163,111,.2),transparent 65%)}
+@media(prefers-reduced-motion:no-preference){
+  .launch::after{animation:launch-ambient-drift 16s ease-in-out infinite alternate}
+  @keyframes launch-ambient-drift{to{transform:translateX(4%) scale(1.1);opacity:.65}}
+}
+@media(max-width:900px){.launch__sphere-shell{width:min(60vw,360px)}}
+@media(max-width:600px){
+  .pricing{background-position:58% top}
+  .pricing::before{background:rgba(241,238,231,.74)}
+  .redesign__copy{margin-bottom:2.5rem}
+  .redesign__cta .btn{width:100%}
+  .launch__sphere-shell{width:min(78vw,300px)}
+  .launch__seal-face b{font-size:clamp(3rem,14vw,4.2rem)}
+}
