@@ -19,7 +19,7 @@
 @media(max-width:900px){.work{padding-bottom:var(--section)}.work__heading{grid-template-columns:1fr}.work__heading .chapter{grid-column:auto}.project,.project:nth-child(2),.project:nth-child(3){position:relative;top:auto;grid-template-columns:1fr;min-height:0}.project__visual{min-height:470px}.project__copy{min-height:380px}}
 @media(max-width:600px){.work__heading{margin-bottom:3rem}.work__heading h2{font-size:13vw}.work__stack{gap:1.5rem}.project__visual{min-height:330px;padding:1rem}.project__copy{min-height:0;padding:2rem 1.25rem}.project__index{font-size:3rem}}
 @media(prefers-reduced-motion:no-preference){.project__browser{transition:transform .45s var(--ease)}.project:hover .project__browser{box-shadow:0 40px 95px rgba(0,0,0,.48)}}
-.project__copy h3{max-width:100%;overflow-wrap:anywhere}.project--pet .project__copy h3{font-size:clamp(2.15rem,3.6vw,3.65rem)}
+.project__copy h3{max-width:100%;overflow-wrap:anywhere}.project--pet .project__copy h3{font-size:clamp(2.15rem,3.6vw,3.65rem)}.project__copy .btn{margin-top:2rem;align-self:flex-start}
 
 @media(max-width:600px){
   .work{overflow:hidden}
