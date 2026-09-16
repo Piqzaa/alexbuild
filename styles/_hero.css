@@ -86,15 +86,7 @@
 }
 
 .hero__beam {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: calc(72% - var(--hero-beam-shift));
-  width: 1px;
-  background: linear-gradient(transparent, #f5dfc4 35%, var(--gold) 62%, transparent);
-  box-shadow: 0 0 28px rgba(210, 163, 111, .62);
-  opacity: var(--hero-beam-opacity);
+  display: none;
 }
 
 .hero__inner {
