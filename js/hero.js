@@ -1,20 +1,16 @@
-import { prefersReducedMotion } from './utils.js';
+﻿import { prefersReducedMotion } from './utils.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const HERO_FRAME_COUNT = 80;
-const HERO_FRAME_PATH = 'assets/hero-cinematic-frames/frame-';
+const SEQUENCE_FRAMES = 75;
 
 export function initHero() {
   const hero = document.querySelector('[data-hero]');
   if (!hero) return;
 
   const canAnimateJourney = !prefersReducedMotion();
-  // The hero now uses one continuous Kling video, including tablet/mobile.
-  // Keeping the source active here avoids falling back to the deleted frame set.
-  const canLoadVideo = true;
   const canUsePointerDepth = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  if (canAnimateJourney) initScrollJourney(hero, canLoadVideo);
+  if (canAnimateJourney) initScrollJourney(hero);
   if (canAnimateJourney && canUsePointerDepth) {
     initPointerDepth(hero);
     initArrivalAttraction(hero);
@@ -59,7 +55,7 @@ function initArrivalAttraction(hero) {
   });
 }
 
-function initScrollJourney(hero, loadVideo) {
+function initScrollJourney(hero) {
   const videos = [...hero.querySelectorAll('[data-hero-scrub]')];
   const sources = videos.map((video) => video.querySelector('[data-src]'));
   if (!videos.length || sources.some((source) => !source)) return;
@@ -71,12 +67,9 @@ function initScrollJourney(hero, loadVideo) {
   let scrubTarget = 0;
   let scrubProgress = 0;
   let settleTimer = null;
-  // The old still-frame fallback was removed with the previous hero assets.
-  // Mobile keeps the static poster; desktop uses the Kling MP4 scrubber.
-  const frameScrub = null;
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = loadVideo ? initImageSequenceScrub(hero) : null;
+  const sequenceScrub = initImageSequenceScrub(hero);
   const smoothStep = (value) => value * value * (3 - 2 * value);
 
   const update = () => {
@@ -119,7 +112,6 @@ function initScrollJourney(hero, loadVideo) {
     hero.style.setProperty('--hero-arrival-opacity', arrival.toFixed(3));
     hero.style.setProperty('--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
     hero.style.setProperty('--hero-fallback-opacity', fallback.toFixed(3));
-    frameScrub?.(progress);
     sequenceScrub?.(scrubProgress);
     const segmentProgress = scrubProgress * Math.max(videos.length, 1);
     const activeIndex = Math.min(videos.length - 1, Math.floor(segmentProgress));
@@ -136,15 +128,18 @@ function initScrollJourney(hero, loadVideo) {
       // fastSeek(), which snaps to keyframes and creates visible jumps.
       activeVideo.currentTime = activeTarget;
     }
+    const ctaProgress = journeyCta ? smoothStep(clamp((scrubProgress - .86) / .12)) : 0;
     // Cards enter just after each visual beat rather than on the exact scene
     // boundary, leaving the transition readable before the overlay appears.
     const cardProgress = Math.max(0, scrubProgress * methodCards.length - .12);
     methodCards.forEach((card, index) => {
       // Each card belongs to a scene: it enters just after that scene's cut.
-      // The final card intentionally remains visible at the end of the journey.
+      // The final card dissolves as the big end-of-journey CTA takes over.
       const local = cardProgress - index;
       const fadeIn = local < .16 ? smoothStep(clamp(local / .16)) : 1;
-      const fadeOut = index === methodCards.length - 1 ? 1 : (local > .88 ? 1 - smoothStep(clamp((local - .88) / .12)) : 1);
+      const fadeOut = index === methodCards.length - 1
+        ? 1 - smoothStep(ctaProgress)
+        : local > .88 ? 1 - smoothStep(clamp((local - .88) / .12)) : 1;
       const opacity = Math.min(fadeIn, fadeOut);
       card.style.setProperty('--method-card-opacity', opacity.toFixed(3));
       card.style.setProperty('--method-card-build', fadeIn.toFixed(3));
@@ -157,7 +152,6 @@ function initScrollJourney(hero, loadVideo) {
       card.setAttribute('aria-hidden', opacity < .35 ? 'true' : 'false');
     });
     if (journeyCta) {
-      const ctaProgress = smoothStep(clamp((scrubProgress - .9) / .1));
       journeyCta.style.setProperty('--journey-cta-opacity', ctaProgress.toFixed(3));
       journeyCta.style.setProperty('--journey-cta-y', `${((1 - ctaProgress) * 1.5).toFixed(2)}vh`);
       journeyCta.style.pointerEvents = ctaProgress > .55 ? 'auto' : 'none';
@@ -189,15 +183,15 @@ function initScrollJourney(hero, loadVideo) {
 
   const loadMedia = (video, source) => {
     video.preload = 'auto';
-    // Let the browser stream the local MP4 directly. Downloading four complete
-    // blobs before scrubbing starts creates unnecessary memory pressure.
+    // Fallback path only: streamed the local MP4 is a rough substitute for the
+    // precise image sequence, usable when canvas decoding is unavailable.
     video.src = source.dataset.src;
     video.load();
   };
 
-  // The local image sequence is the desktop path. MP4 remains a lightweight
-  // fallback for environments where the sequence cannot be loaded.
-  if (loadVideo && !sequenceScrub) videos.forEach((video, index) => loadMedia(video, sources[index]));
+  // Image sequence is the primary scrub path. MP4 remains a lightweight
+  // fallback for environments where the sequence cannot be decoded.
+  if (!sequenceScrub) videos.forEach((video, index) => loadMedia(video, sources[index]));
   window.addEventListener('scroll', requestUpdate, { passive: true });
   window.addEventListener('resize', requestUpdate, { passive: true });
   requestUpdate();
@@ -207,216 +201,189 @@ function initImageSequenceScrub(hero) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
   if (!canvas) return null;
+  if (typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return null;
   const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!context) return null;
-  canvas.width = 1920;
-  canvas.height = 1080;
+  // High-quality smoothing limits visible upscaling when the canvas is larger
+  // than the extracted frames on very wide displays.
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
 
-  const scenes = [361, 361];
-  const cache = scenes.map(() => new Map());
-  const queued = new Set();
-  const loading = new Set();
+  const scenes = [SEQUENCE_FRAMES, SEQUENCE_FRAMES];
+  const FRAME_WIDTH = 1600;
+  const FRAME_HEIGHT = 900;
+  const KEEP_WINDOW = 16;
+  const EDGE_KEEP = 4;
+  const MAX_CONCURRENT = 2;
+  const totalFrames = scenes.reduce((sum, count) => sum + count, 0);
+  const caches = scenes.map(() => new Map());
+  const inflight = new Map();
   const queue = [];
-  const maxConcurrent = 3;
-  let activeLoads = 0;
-  let desired = { scene: 0, frame: 0 };
-  let previousFrame = 0;
-  let previousScene = 0;
-  let currentKey = '';
+  const queued = new Set();
+  let desiredScene = 0;
+  let desiredFrame = 0;
+  let drawnKey = '';
+
+  canvas.width = FRAME_WIDTH;
+  canvas.height = FRAME_HEIGHT;
+
   const path = (scene, frame) => `assets/hero-tech-frames-${scene + 1}/frame-${String(frame + 1).padStart(4, '0')}.webp`;
 
   const renderClosest = () => {
-    const sceneCache = cache[desired.scene];
-    let loaded = sceneCache.get(desired.frame);
-    if (!loaded || !loaded.complete) {
+    let frame = desiredFrame;
+    let bitmap = caches[desiredScene].get(frame);
+    if (!bitmap) {
       let closestDistance = Infinity;
-      sceneCache.forEach((candidate, frame) => {
-        if (!candidate.complete) return;
-        const distance = Math.abs(frame - desired.frame);
+      caches[desiredScene].forEach((candidate, index) => {
+        const distance = Math.abs(index - desiredFrame);
         if (distance < closestDistance) {
           closestDistance = distance;
-          loaded = candidate;
+          bitmap = candidate;
+          frame = index;
         }
       });
     }
-    if (!loaded) return;
-    const key = loaded.dataset.key;
-    if (key === currentKey) return;
-    currentKey = key;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(loaded, 0, 0, canvas.width, canvas.height);
+    if (!bitmap) return;
+    const key = `${desiredScene}:${frame}`;
+    if (key === drawnKey) return;
+    drawnKey = key;
+    context.drawImage(bitmap, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
     hero.classList.add('is-sequence-ready');
     loader?.setAttribute('aria-hidden', 'true');
   };
 
+  // Bounded memory: decoded bitmaps are freed as soon as they leave a window
+  // around the current position. Only the seam of nearby scenes is retained.
+  const evict = () => {
+    caches.forEach((cache, sceneIndex) => {
+      if (sceneIndex === desiredScene) {
+        cache.forEach((bitmap, frame) => {
+          if (Math.abs(frame - desiredFrame) > KEEP_WINDOW) {
+            bitmap.close();
+            cache.delete(frame);
+          }
+        });
+      } else if (sceneIndex === desiredScene - 1) {
+        cache.forEach((bitmap, frame) => {
+          if (frame < scenes[sceneIndex] - EDGE_KEEP) {
+            bitmap.close();
+            cache.delete(frame);
+          }
+        });
+      } else if (sceneIndex === desiredScene + 1) {
+        cache.forEach((bitmap, frame) => {
+          if (frame >= EDGE_KEEP) {
+            bitmap.close();
+            cache.delete(frame);
+          }
+        });
+      } else {
+        cache.forEach((bitmap) => bitmap.close());
+        cache.clear();
+      }
+    });
+  };
+
   const pump = () => {
     queue.sort((a, b) => a.priority - b.priority);
-    while (activeLoads < maxConcurrent && queue.length) {
+    while (inflight.size < MAX_CONCURRENT && queue.length) {
       const item = queue.shift();
       queued.delete(item.key);
-      if (cache[item.scene].has(item.frame) || loading.has(item.key)) continue;
-      loading.add(item.key);
-      activeLoads += 1;
-      const next = new Image();
-      next.decoding = 'async';
-      if ('fetchPriority' in next) next.fetchPriority = item.priority === 0 ? 'high' : 'low';
-      next.dataset.key = item.key;
-      next.onload = async () => {
-        // `onload` only guarantees that the bytes arrived. Decode first so
-        // swapping the visible image never flashes a transparent/black frame.
-        try {
-          if (typeof next.decode === 'function') await next.decode();
-        } catch {
-          // The browser may reject decode after a cache race; the image is
-          // still usable once complete, so keep it as a fallback.
-        }
-        cache[item.scene].set(item.frame, next);
-        loading.delete(item.key);
-        activeLoads -= 1;
+      if (caches[item.scene].has(item.frame) || inflight.has(item.key)) continue;
+      const promise = fetch(path(item.scene, item.frame))
+        .then((response) => {
+          if (!response.ok) throw new Error('frame fetch failed');
+          return response.blob();
+        })
+        .then((blob) => createImageBitmap(blob));
+      inflight.set(item.key, promise);
+      Promise.resolve(promise).then((bitmap) => {
+        inflight.delete(item.key);
+        const previous = caches[item.scene].get(item.frame);
+        if (previous) previous.close();
+        caches[item.scene].set(item.frame, bitmap);
+        evict();
         renderClosest();
-        pump();
-      };
-      next.onerror = () => {
-        loading.delete(item.key);
-        activeLoads -= 1;
-        pump();
-      };
-      next.src = path(item.scene, item.frame);
+      }).catch(() => {
+        inflight.delete(item.key);
+      }).finally(() => {
+        if (queue.length) pump();
+      });
     }
   };
 
-  const preload = (scene, frame, priority = 2) => {
+  const request = (scene, frame, priority = 2) => {
     if (scene < 0 || scene >= scenes.length || frame < 0 || frame >= scenes[scene]) return;
     const key = `${scene}:${frame}`;
-    if (cache[scene].has(frame) || loading.has(key) || queued.has(key)) return;
+    if (caches[scene].has(frame) || inflight.has(key) || queued.has(key)) return;
     queued.add(key);
     queue.push({ scene, frame, priority, key });
-    pump();
+    // Kick the looper whenever it has headroom so requests submitted after an
+    // idle window are still picked up instead of piling up in the queue.
+    if (inflight.size < MAX_CONCURRENT) pump();
   };
 
-  const evictDistant = () => {
-    cache.forEach((sceneCache, scene) => {
-      sceneCache.forEach((entry, frame) => {
-        const isCurrent = scene === desired.scene;
-        const isNext = scene === desired.scene + 1;
-        const isPrevious = scene === desired.scene - 1;
-        const keepBoundaryFrame = (isNext && frame < 36) || (isPrevious && frame > scenes[scene] - 36);
-        if ((!isCurrent && !keepBoundaryFrame) || (isCurrent && Math.abs(frame - desired.frame) > 48)) sceneCache.delete(frame);
-      });
-    });
-    for (let index = queue.length - 1; index >= 0; index -= 1) {
-      const item = queue[index];
-      const isUsefulNext = item.scene === desired.scene + 1 && item.frame < 36;
-      const isUsefulPrevious = item.scene === desired.scene - 1 && item.frame > scenes[item.scene] - 36;
-      const isUsefulCurrent = item.scene === desired.scene && Math.abs(item.frame - desired.frame) <= 48;
-      if (!isUsefulCurrent && !isUsefulNext && !isUsefulPrevious) {
-        queued.delete(item.key);
-        queue.splice(index, 1);
-      }
+  // Warm the browser cache for every remaining frame during idle time, so that
+  // scrubbing only ever hits the in-memory HTTP cache instead of the network.
+  let warmCursor = 0;
+  let warmActive = 0;
+  let warmRunning = true;
+  const scheduleIdle = (fn) => {
+    if (!warmRunning) return;
+    if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 3000 });
+    else setTimeout(fn, 120);
+  };
+  const warmNext = () => {
+    if (!warmRunning) return;
+    while (warmActive < MAX_CONCURRENT && warmCursor < totalFrames) {
+      const flat = warmCursor;
+      warmCursor += 1;
+      const scene = Math.floor(flat / scenes[0]);
+      const frame = flat % scenes[0];
+      warmActive += 1;
+      fetch(path(scene, frame))
+        .then((response) => response.blob())
+        .catch(() => {})
+        .finally(() => {
+          warmActive -= 1;
+          scheduleIdle(warmNext);
+        });
     }
   };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      warmRunning = false;
+    } else if (warmCursor < totalFrames) {
+      warmRunning = true;
+      scheduleIdle(warmNext);
+    }
+  }, { passive: true });
 
-  // Warm the first frame immediately so the desktop hero never starts blank.
-  preload(0, 0, 0);
+  // Warm the first frames immediately so the desktop hero never starts blank.
+  request(0, 0, 0);
+  request(0, 1, 1);
+  pump();
+  scheduleIdle(warmNext);
 
   return (timelineProgress) => {
     const scaled = clamp(timelineProgress) * scenes.length;
     const scene = Math.min(scenes.length - 1, Math.floor(scaled));
     const local = clamp(scaled - scene);
     const frame = Math.round(local * (scenes[scene] - 1));
-    const direction = scene !== previousScene ? (scene > previousScene ? 1 : -1) : (frame < previousFrame ? -1 : 1);
-    previousFrame = frame;
-    previousScene = scene;
-    desired = { scene, frame };
-    preload(scene, frame, 0);
-    for (let step = 1; step <= 18; step += 1) {
-      preload(scene, frame + step * direction, 1);
-      if (step <= 6) preload(scene, frame - step * direction, 2);
+    desiredScene = scene;
+    desiredFrame = frame;
+    request(scene, frame, 0);
+    for (let step = 1; step <= KEEP_WINDOW; step += 1) {
+      request(scene, frame + step, 1);
+      request(scene, frame - step, 1);
     }
-    if (scene < scenes.length - 1 && local > .72) {
-      for (let offset = 0; offset <= 14; offset += 1) preload(scene + 1, offset, 2);
+    if (scene < scenes.length - 1) {
+      for (let offset = 0; offset < EDGE_KEEP; offset += 1) request(scene + 1, offset, 2);
     }
-    evictDistant();
+    if (scene > 0) {
+      for (let offset = scenes[scene - 1] - EDGE_KEEP; offset < scenes[scene - 1]; offset += 1) request(scene - 1, offset, 2);
+    }
+    evict();
     renderClosest();
-  };
-}
-
-function initFrameScrub(hero) {
-  const frameImage = hero.querySelector('[data-hero-frame]');
-  if (!frameImage) return null;
-
-  const loadedFrames = new Set([0]);
-  const loadingFrames = new Set();
-  const frameSources = Array.from({ length: HERO_FRAME_COUNT }, (_, index) => {
-    const number = String(index + 1).padStart(3, '0');
-    return `${HERO_FRAME_PATH}${number}.jpg`;
-  });
-  let currentIndex = 0;
-
-  const preloadFrame = (index) => {
-    if (index < 0 || index >= HERO_FRAME_COUNT || loadedFrames.has(index) || loadingFrames.has(index)) return;
-    loadingFrames.add(index);
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = () => {
-      loadedFrames.add(index);
-      loadingFrames.delete(index);
-    };
-    image.onerror = () => loadingFrames.delete(index);
-    image.src = frameSources[index];
-    if (image.decode) image.decode().catch(() => {});
-  };
-
-  const preloadRange = (from, to) => {
-    for (let index = from; index <= to; index += 1) preloadFrame(index);
-  };
-
-  hero.classList.add('is-frame-ready');
-  preloadRange(1, 18);
-
-  let warmupIndex = 19;
-  let warmupTimer = null;
-  const stopWarmup = () => {
-    if (!warmupTimer) return;
-    clearInterval(warmupTimer);
-    warmupTimer = null;
-  };
-  const startWarmup = () => {
-    if (warmupTimer || warmupIndex >= HERO_FRAME_COUNT) return;
-    warmupTimer = setInterval(() => {
-      preloadRange(warmupIndex, Math.min(HERO_FRAME_COUNT - 1, warmupIndex + 5));
-      warmupIndex += 6;
-      if (warmupIndex >= HERO_FRAME_COUNT) stopWarmup();
-    }, 850);
-  };
-
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) startWarmup();
-        else stopWarmup();
-      });
-    }, { rootMargin: '35% 0px' });
-    observer.observe(hero);
-    window.addEventListener('pagehide', () => {
-      stopWarmup();
-      observer.disconnect();
-    }, { once: true });
-  } else {
-    startWarmup();
-  }
-
-  return (progress) => {
-    const timelineProgress = clamp(progress / .9);
-    const targetIndex = Math.round(timelineProgress * (HERO_FRAME_COUNT - 1));
-    preloadRange(Math.max(0, targetIndex - 1), Math.min(HERO_FRAME_COUNT - 1, targetIndex + 8));
-    if (targetIndex === currentIndex) return;
-
-    let nextIndex = targetIndex;
-    while (nextIndex > 0 && !loadedFrames.has(nextIndex)) nextIndex -= 1;
-    if (nextIndex === currentIndex) return;
-
-    currentIndex = nextIndex;
-    frameImage.src = frameSources[currentIndex];
   };
 }
