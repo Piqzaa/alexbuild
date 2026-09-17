@@ -67,9 +67,13 @@ function initScrollJourney(hero) {
   let scrubTarget = 0;
   let scrubProgress = 0;
   let settleTimer = null;
+  // Touch browsers dispatch sparse, oversized scroll deltas during flings.
+  // Light mode bounds every cost: decode size, concurrency, cache window and
+  // the amount the visual may move per frame, keeping mobile deterministic.
+  const lightMode = window.innerWidth < 901 || window.matchMedia('(any-pointer: coarse)').matches;
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = initImageSequenceScrub(hero);
+  const sequenceScrub = initImageSequenceScrub(hero, lightMode);
   const smoothStep = (value) => value * value * (3 - 2 * value);
 
   const update = () => {
@@ -86,11 +90,15 @@ function initScrollJourney(hero) {
     const timelineProgress = clamp((progress - timelineStart) / (timelineEnd - timelineStart));
     scrubTarget = timelineProgress;
     const scrubDelta = scrubTarget - scrubProgress;
-    // Scroll events arrive in large, uneven steps on trackpads and mouse
-    // wheels. Interpolating the visual progress keeps the camera and cards
-    // moving continuously between those events without adding a library.
-    if (Math.abs(scrubDelta) > .00035) scrubProgress += scrubDelta * .12;
-    else scrubProgress = scrubTarget;
+    // Scroll events arrive in large, uneven steps on trackpads and wheels, and
+    // touch flings dispatch a handful of huge leaps. Proportional chasing keeps
+    // desktop fluid, but on touch it would still teleport across dozens of
+    // frames and skip whole cards. A capped chase bounds the movement per
+    // animation frame so scenes and cards always cross one after another.
+    const chaseRate = .12;
+    const maxStep = lightMode ? .008 : 2;
+    if (Math.abs(scrubDelta) <= .00035) scrubProgress = scrubTarget;
+    else scrubProgress += Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta) * chaseRate, maxStep);
     if (Math.abs(scrubDelta) > .012) {
       hero.classList.add('is-scrubbing-fast');
       clearTimeout(settleTimer);
@@ -197,7 +205,7 @@ function initScrollJourney(hero) {
   requestUpdate();
 }
 
-function initImageSequenceScrub(hero) {
+function initImageSequenceScrub(hero, lightMode = false) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
   if (!canvas) return null;
@@ -212,9 +220,13 @@ function initImageSequenceScrub(hero) {
   const scenes = [SEQUENCE_FRAMES, SEQUENCE_FRAMES];
   const FRAME_WIDTH = 1600;
   const FRAME_HEIGHT = 900;
-  const KEEP_WINDOW = 16;
-  const EDGE_KEEP = 4;
-  const MAX_CONCURRENT = 2;
+  // Light mode (touch/narrow) shrinks every cap that drives mobile jank:
+  // decode resolution is halved, concurrency and the in-memory window shrink,
+  // and the full warm-ahead of all frames is skipped.
+  const KEEP_WINDOW = lightMode ? 6 : 16;
+  const EDGE_KEEP = lightMode ? 2 : 4;
+  const MAX_CONCURRENT = lightMode ? 1 : 2;
+  const DECODE_OPTIONS = lightMode ? { resizeWidth: 960, resizeHeight: 540, resizeQuality: 'low' } : undefined;
   const totalFrames = scenes.reduce((sum, count) => sum + count, 0);
   const caches = scenes.map(() => new Map());
   const inflight = new Map();
@@ -295,7 +307,7 @@ function initImageSequenceScrub(hero) {
           if (!response.ok) throw new Error('frame fetch failed');
           return response.blob();
         })
-        .then((blob) => createImageBitmap(blob));
+        .then((blob) => createImageBitmap(blob, DECODE_OPTIONS));
       inflight.set(item.key, promise);
       Promise.resolve(promise).then((bitmap) => {
         inflight.delete(item.key);
@@ -325,9 +337,12 @@ function initImageSequenceScrub(hero) {
 
   // Warm the browser cache for every remaining frame during idle time, so that
   // scrubbing only ever hits the in-memory HTTP cache instead of the network.
+  // Skipped on touch: fetching 150 full frames on a mobile connection is the
+  // single heaviest cost of the journey, and the small light-mode window keeps
+  // every frame that matters within a couple of decodes of the current one.
   let warmCursor = 0;
   let warmActive = 0;
-  let warmRunning = true;
+  let warmRunning = !lightMode;
   const scheduleIdle = (fn) => {
     if (!warmRunning) return;
     if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 3000 });
