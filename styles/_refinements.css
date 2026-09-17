@@ -169,3 +169,191 @@
   .launch__sphere-shell{width:min(78vw,300px)}
   .launch__seal-face b{font-size:clamp(3rem,14vw,4.2rem)}
 }
+
+/* Frame-based hero journey: deterministic scrubbing instead of MP4 seeking. */
+.hero__video:not(.is-active){opacity:0!important}
+.hero__video.is-active{opacity:1!important}
+.hero__video.is-active,.hero__video:not(.is-active){transition:none!important}
+.hero__video{display:none!important}
+.hero__sequence{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;transform:translate3d(var(--px),var(--py),0) scale(1.01);opacity:1;backface-visibility:hidden;contain:paint}
+.hero.is-scrubbing-fast .hero__arrival--method .method-card{backdrop-filter:none!important;box-shadow:none!important}
+.hero__loader{position:absolute;z-index:12;inset:0;display:flex;align-items:center;justify-content:center;gap:.7rem;color:rgba(245,241,233,.76);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;background:#111315;opacity:1;transition:opacity .45s ease;pointer-events:none}
+.hero__loader-mark{width:1.1rem;height:1.1rem;border:1px solid rgba(245,241,233,.28);border-top-color:#d9b878;border-radius:50%;animation:hero-loader-spin .8s linear infinite}
+.hero.is-sequence-ready .hero__loader{opacity:0}
+@keyframes hero-loader-spin{to{transform:rotate(360deg)}}
+/* The old stills belong to the previous hero animation. Keep the stage dark
+   until the first real scrub video is ready instead of flashing that artwork. */
+@media(min-width:901px){.hero__poster,.hero__fallback-end,.hero__frame{display:none!important}}
+.hero__arrival--method{display:block;padding:0;color:#28231f;pointer-events:none}
+.hero__arrival--method .method-card{position:absolute;top:50%;left:50%;display:flex;width:min(520px,42vw);min-height:340px;justify-content:space-between;flex-direction:column;padding:clamp(1.5rem,2.6vw,2.5rem);opacity:var(--method-card-opacity,0);filter:blur(var(--method-card-blur,8px));transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) rotate(-1deg);transition:opacity .08s linear,filter .08s linear,transform .08s linear;background:rgba(248,243,235,.91);border:1px solid rgba(80,66,53,.3);box-shadow:0 28px 90px rgba(39,28,19,.25),inset 0 1px rgba(255,255,255,.78);backdrop-filter:blur(16px) saturate(.85)}
+.hero__arrival--method .method-card:nth-child(even){transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) rotate(1deg)}
+.hero__arrival--method .method-card>b{color:rgba(125,91,56,.16);font:500 clamp(6rem,12vw,10rem)/.8 var(--font-display);text-align:right}
+.hero__arrival--method .method-card .chapter{color:#5d554d}
+.hero__arrival--method .method-card .chapter span{color:var(--gold-dark)}
+.hero__arrival--method .method-card h2{max-width:10ch;margin:1rem 0 .9rem;color:#211d1a;font-size:clamp(2.4rem,4.5vw,4.8rem);line-height:.94}
+.hero__arrival--method .method-card>p:not(.chapter){max-width:38ch;color:#3f3832;font-size:.9rem;line-height:1.5}
+.hero__arrival--method .method-card small{width:max-content;margin-top:1.5rem;padding:.4rem .6rem;color:#5d554d;border:1px solid rgba(80,66,53,.32);font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hero__arrival--method .method-card{transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) rotate(-2deg);transition:opacity .06s linear,filter .06s linear,transform .06s linear}
+.hero__arrival--method .method-card:nth-child(even){transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) rotate(2deg)}
+.hero__arrival--method .method-card--diagnostic{top:44%;left:31%;border-radius:28px 8px 28px 8px}
+.hero__arrival--method .method-card--structure{top:54%;left:69%;border-radius:8px 28px 8px 28px;background:rgba(236,240,239,.9)}
+.hero__arrival--method .method-card--design{top:43%;left:66%;border-radius:28px 8px 28px 8px;background:rgba(244,237,225,.92)}
+.hero__arrival--method .method-card--launch{top:56%;left:34%;border-radius:8px 28px 8px 28px;background:rgba(238,237,230,.92)}
+.method-card__reassurance{display:grid;gap:.35rem;width:max-content;max-width:100%;margin-top:1.5rem;padding:.65rem .8rem;border-left:2px solid var(--gold-dark);background:rgba(255,255,255,.34)}
+.method-card__reassurance small{margin:0!important;padding:0!important;color:#766854!important;border:0!important;font-size:.56rem!important;letter-spacing:.12em}
+.method-card__reassurance strong{color:#302922;font-size:.72rem;font-weight:600;line-height:1.35}
+.method-card:not(.is-current){pointer-events:none}
+.method{display:none!important}
+@media(max-width:700px){.hero__arrival--method{padding:0 1rem}.hero__arrival--method .method-card,.hero__arrival--method .method-card--diagnostic,.hero__arrival--method .method-card--structure,.hero__arrival--method .method-card--design,.hero__arrival--method .method-card--launch{top:50%;left:50%;width:min(100%,360px);min-height:300px;padding:1.25rem;backdrop-filter:blur(10px)}.hero__arrival--method .method-card h2{font-size:clamp(2.1rem,9vw,3.2rem)}.hero__arrival--method .method-card>b{font-size:6rem}}
+@media(prefers-reduced-motion:reduce){.hero__arrival--method{position:relative;inset:auto;display:grid;gap:1rem;padding:5rem var(--pad);background:var(--paper);pointer-events:auto}.hero__arrival--method .method-card,.hero__arrival--method .method-card:nth-child(even){position:relative;top:auto;left:auto;width:100%;min-height:0;opacity:1!important;filter:none;transform:none;transition:none}}
+
+/* The four cards evolve with the visual language of the Kling journey. */
+.hero__arrival--method .method-card{
+  --card-radius:28px 8px 28px 8px;
+  --card-ink:#1e2930;
+  --card-line:rgba(151,201,220,.7);
+  --card-surface:linear-gradient(145deg,rgba(229,239,242,.96),rgba(171,192,199,.88));
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:var(--card-radius);
+  background:var(--card-surface);
+  border-color:var(--card-line);
+  color:var(--card-ink);
+  clip-path:inset(calc((1 - var(--method-card-build,0)) * 10%) 0 calc(var(--method-card-dissolve,0) * 10%) 0 round var(--card-radius));
+  transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) scale(var(--method-card-scale,.94)) rotate(-2deg);
+  transition:opacity .08s linear,filter .08s linear,transform .08s linear,clip-path .08s linear;
+}
+.hero__arrival--method .method-card h2{ text-shadow:0 1px 0 rgba(255,255,255,.18) }
+.hero__arrival--method .method-card>p:not(.chapter){font-weight:500}
+.hero__arrival--method .method-card__reassurance strong{font-weight:700}
+.hero__arrival--method .method-card::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:-30% -60%;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.72) 49%,transparent 58%);
+  transform:translateX(calc((var(--method-card-build,0) - 1) * 100%));
+  opacity:calc(1 - var(--method-card-dissolve,0));
+  pointer-events:none;
+}
+.hero__arrival--method .method-card::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:12px;
+  border:1px solid color-mix(in srgb,var(--card-line) 70%,transparent);
+  border-radius:calc(var(--card-radius) - 10px);
+  opacity:calc(.18 + var(--method-card-build,0) * .62);
+  pointer-events:none;
+}
+.hero__arrival--method .method-card h2,.hero__arrival--method .method-card p,.hero__arrival--method .method-card .chapter,.hero__arrival--method .method-card>b,.hero__arrival--method .method-card__reassurance{position:relative;z-index:1;color:var(--card-ink)}
+.hero__arrival--method .method-card__reassurance small,.hero__arrival--method .method-card__reassurance strong{color:var(--card-ink)!important}
+.hero__arrival--method .method-card__reassurance{box-sizing:border-box;width:100%;max-width:100%;overflow:hidden}
+.hero__arrival--method .method-card__reassurance strong{display:block;overflow-wrap:anywhere}
+.hero__arrival--method .method-card .chapter span{color:var(--card-accent,#477889)}
+.hero__arrival--method .method-card__reassurance{border-left-color:var(--card-accent,#477889);background:rgba(255,255,255,.25)}
+.hero__journey-cta{position:absolute;z-index:4;top:50%;right:7%;display:grid;min-width:265px;gap:.5rem;padding:1.2rem 3.5rem 1.2rem 1.4rem;color:#211d1a;text-decoration:none;opacity:var(--journey-cta-opacity,0);transform:translate3d(0,calc(-50% + var(--journey-cta-y,1.5vh)),0);transition:opacity .08s linear,transform .2s ease,background .2s ease,box-shadow .2s ease,border-color .2s ease;background:rgba(245,239,226,.9);border:1px solid rgba(228,187,120,.72);box-shadow:0 18px 55px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.8);backdrop-filter:blur(12px)}
+.hero__journey-cta:hover,.hero__journey-cta:focus-visible{transform:translate3d(-6px,calc(-50% + var(--journey-cta-y,1.5vh)),0);background:#fff7e9;border-color:#e4bb78;box-shadow:0 24px 70px rgba(0,0,0,.36),0 0 0 3px rgba(228,187,120,.16),inset 0 1px rgba(255,255,255,.95)}
+.hero__journey-cta span{color:#78664f;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase}
+.hero__journey-cta strong{font:600 1.15rem/1 var(--font-display);letter-spacing:-.03em}
+.hero__journey-cta i{position:absolute;top:50%;right:1.2rem;color:#b2874c;font-size:1.45rem;font-style:normal;transform:translateY(-50%);transition:transform .2s ease}
+.hero__journey-cta:hover i,.hero__journey-cta:focus-visible i{transform:translate(3px,-50%)}
+.hero.is-scrubbing-fast .hero__journey-cta{backdrop-filter:none!important;box-shadow:none!important}
+
+.hero__arrival--method .method-card--diagnostic{
+  --card-radius:32px 6px 24px 10px;
+  --card-ink:#1c2b32;
+  --card-accent:#4e8799;
+  --card-line:rgba(91,144,161,.72);
+  --card-surface:linear-gradient(145deg,rgba(225,237,240,.97),rgba(166,190,198,.9));
+  top:51%;left:25%;
+  box-shadow:0 30px 90px rgba(38,79,91,.28),inset 0 1px rgba(255,255,255,.8);
+}
+.hero__arrival--method .method-card--structure{
+  --card-radius:8px 28px 8px 28px;
+  --card-ink:#24282b;
+  --card-accent:#707b83;
+  --card-line:rgba(190,201,205,.9);
+  --card-surface:linear-gradient(120deg,rgba(217,222,223,.98),rgba(103,112,117,.92) 52%,rgba(205,211,211,.94));
+  top:55%;left:72%;
+  box-shadow:0 30px 90px rgba(35,41,44,.35),inset 0 1px rgba(255,255,255,.9);
+  transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) scale(var(--method-card-scale,.94)) rotate(2deg);
+}
+.hero__arrival--method .method-card--structure::before{background:none}
+.hero__arrival--method .method-card--structure h2,
+.hero__arrival--method .method-card--structure>p,
+.hero__arrival--method .method-card--structure .chapter,
+.hero__arrival--method .method-card--structure .method-card__reassurance,
+.hero__arrival--method .method-card--structure .method-card__reassurance strong,
+.hero__arrival--method .method-card--structure .method-card__reassurance small{color:#172027!important}
+.hero__arrival--method .method-card--structure .chapter span{color:#344e5c!important}
+.hero__arrival--method .method-card--design{
+  --card-radius:26px 10px 10px 26px;
+  --card-ink:#e8f4f3;
+  --card-accent:#83d5cb;
+  --card-line:rgba(115,220,207,.68);
+  --card-surface:linear-gradient(145deg,rgba(13,34,39,.98),rgba(17,61,67,.94));
+  top:47%;left:71%;
+  box-shadow:0 30px 100px rgba(8,54,58,.48),inset 0 0 0 1px rgba(131,213,203,.18);
+}
+.hero__arrival--method .method-card--design h2,
+.hero__arrival--method .method-card--design>p,
+.hero__arrival--method .method-card--design .chapter,
+.hero__arrival--method .method-card--design .method-card__reassurance,
+.hero__arrival--method .method-card--design .method-card__reassurance strong,
+.hero__arrival--method .method-card--design .method-card__reassurance small{color:#effffc!important}
+.hero__arrival--method .method-card--design .chapter span{color:#9bf1e4!important}
+.hero__arrival--method .method-card--design::before{background:linear-gradient(105deg,transparent 35%,rgba(131,213,203,.34) 49%,transparent 61%),linear-gradient(rgba(131,213,203,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(131,213,203,.08) 1px,transparent 1px);background-size:auto,22px 22px,22px 22px}
+.hero__arrival--method .method-card--launch{
+  --card-radius:10px 30px 10px 30px;
+  --card-ink:#f2ead9;
+  --card-accent:#e4bb78;
+  --card-line:rgba(228,187,120,.78);
+  --card-surface:radial-gradient(circle at 78% 46%,rgba(236,194,112,.3),transparent 36%),linear-gradient(145deg,rgba(24,20,28,.98),rgba(45,35,48,.95));
+  top:53%;left:20%;
+  box-shadow:0 32px 110px rgba(0,0,0,.52),0 0 70px rgba(211,166,88,.14),inset 0 0 0 1px rgba(255,224,166,.14);
+}
+.hero__arrival--method .method-card--launch::before{background:conic-gradient(from 210deg,transparent 0 30%,rgba(255,225,164,.45) 42%,transparent 57% 100%)}
+.hero__arrival--method .method-card--launch::after{inset:16px;border-color:rgba(228,187,120,.46);box-shadow:inset 0 0 34px rgba(224,181,102,.08)}
+.hero__arrival--method .method-card--launch .method-card__reassurance{background:rgba(255,213,140,.08)}
+.hero__arrival--method .method-card--launch h2,
+.hero__arrival--method .method-card--launch>p,
+.hero__arrival--method .method-card--launch .chapter,
+.hero__arrival--method .method-card--launch .method-card__reassurance,
+.hero__arrival--method .method-card--launch .method-card__reassurance strong,
+.hero__arrival--method .method-card--launch .method-card__reassurance small{color:#fff5df!important}
+.hero__arrival--method .method-card--launch .chapter span{color:#f1ca84!important}
+
+@media(max-width:700px){
+  .hero__arrival--method .method-card,
+  .hero__arrival--method .method-card--diagnostic,
+  .hero__arrival--method .method-card--structure,
+  .hero__arrival--method .method-card--design,
+  .hero__arrival--method .method-card--launch{
+    top:auto;
+    right:1rem;
+    bottom:7%;
+    left:1rem;
+    width:auto;
+    min-height:0;
+    max-height:43svh;
+    padding:1.15rem;
+    overflow:hidden;
+    transform:translate3d(0,calc(var(--method-card-y,4vh)),0) scale(var(--method-card-scale,.94)) rotate(-1deg);
+  }
+  .hero__arrival--method .method-card:nth-child(even){transform:translate3d(0,calc(var(--method-card-y,4vh)),0) scale(var(--method-card-scale,.94)) rotate(1deg)}
+  .hero__arrival--method .method-card h2{max-width:14ch;margin:.55rem 0 .65rem;font-size:clamp(1.85rem,8.8vw,2.8rem)}
+  .hero__arrival--method .method-card>p:not(.chapter){font-size:.78rem;line-height:1.4}
+  .hero__arrival--method .method-card>b{font-size:5rem}
+  .hero__arrival--method .method-card__reassurance{margin-top:.8rem}
+  .hero__arrival--method .method-card--diagnostic{top:auto;bottom:7%}
+  .hero__arrival--method .method-card--structure{top:36%;bottom:auto}
+  .hero__arrival--method .method-card--design{top:auto;bottom:7%}
+  .hero__arrival--method .method-card--launch{top:auto;bottom:22%;max-height:50svh}
+  .hero__arrival--method .method-card--launch>b{font-size:4rem}
+  .hero__arrival--method .method-card--launch .method-card__reassurance{margin-top:.55rem}
+  .hero__journey-cta{top:auto;right:1rem;bottom:7%;left:1rem;min-width:0;padding:.75rem 2.8rem .75rem .9rem;transform:translate3d(0,var(--journey-cta-y,1.5vh),0)}
+  .hero__journey-cta:hover,.hero__journey-cta:focus-visible{transform:translate3d(0,calc(var(--journey-cta-y,1.5vh) - 3px),0)}
+  .hero__journey-cta strong{font-size:1rem}
+  .hero__journey-cta i{right:.8rem}
+}
