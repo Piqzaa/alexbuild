@@ -1,14 +1,43 @@
 /** Both printed faces belong to the medal, in one transparent 3D scene. */
+import { isBudgetMode, onPowerChange } from './power.js';
+
 export function initLaunchSphere() {
   const shell = document.querySelector('.launch__sphere-shell');
   if (!shell) return;
-  const loader = new IntersectionObserver(async ([entry]) => {
-    if (!entry.isIntersecting) return;
-    loader.disconnect();
-    try { createMedal(await import('https://unpkg.com/three@0.160.0/build/three.module.js'), shell); }
-    catch { shell.classList.remove('is-webgl'); }
-  }, { rootMargin: '200px' });
-  loader.observe(shell);
+  let observer = null;
+  let activeDispose = null;
+
+  const createObserver = () => {
+    observer = new IntersectionObserver(async ([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      // Loading Three.js (~600 kB) plus a WebGL scene on a constrained device
+      // is a heavy cost for a decorative medal. The static .launch__seal
+      // fallback stays in that case, with zero JS weight.
+      if (isBudgetMode()) return;
+      try {
+        const T = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+        if (isBudgetMode() || activeDispose) return;
+        activeDispose = createMedal(T, shell);
+      } catch { shell.classList.remove('is-webgl'); }
+    }, { rootMargin: '200px' });
+    observer.observe(shell);
+  };
+
+  // A drop into budget mode tears the WebGL scene down instead of keeping a
+  // decorative frame loop running on battery or a weak network. Releasing it
+  // lets the medal rebuild lazily if the shell is on screen.
+  onPowerChange(() => {
+    if (isBudgetMode()) {
+      observer?.disconnect();
+      activeDispose?.();
+      activeDispose = null;
+    } else if (!activeDispose) {
+      createObserver();
+    }
+  });
+
+  createObserver();
 }
 
 function createMedal(T, shell) {
@@ -86,4 +115,5 @@ function createMedal(T, shell) {
   shell.prepend(canvas); resize(); shell.classList.add('is-webgl');
   sizes.observe(shell); visibility.observe(shell);
   document.addEventListener('visibilitychange', sync); motion.addEventListener('change', sync);
+  return dispose;
 }

@@ -1,4 +1,5 @@
 ﻿import { prefersReducedMotion } from './utils.js';
+import { isCoarse, isNarrow, isBudgetMode, onPowerChange } from './power.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const SEQUENCE_FRAMES = 75;
@@ -68,12 +69,23 @@ function initScrollJourney(hero) {
   let scrubProgress = 0;
   let settleTimer = null;
   // Touch browsers dispatch sparse, oversized scroll deltas during flings.
-  // Light mode bounds every cost: decode size, concurrency, cache window and
-  // the amount the visual may move per frame, keeping mobile deterministic.
-  const lightMode = window.innerWidth < 901 || window.matchMedia('(any-pointer: coarse)').matches;
+  // The chase stays a "touch mode" concern: cap the amount the visual may move
+  // per frame so scenes and cards always cross one after another on mobile.
+  const touchMode = isCoarse() || isNarrow();
+  // Budget mode bounds every heavy cost instead: decode size, concurrency,
+  // cache window and the full warm-ahead of frames. It engages on touch but
+  // can also kick in mid-session on low battery or reduced data mode.
+  const budget = { active: isBudgetMode() };
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = initImageSequenceScrub(hero, lightMode);
+  const sequenceScrub = initImageSequenceScrub(hero, budget);
+  onPowerChange(() => {
+    const next = isBudgetMode();
+    if (next !== budget.active) {
+      budget.active = next;
+      sequenceScrub?.setBudget(next);
+    }
+  });
   const smoothStep = (value) => value * value * (3 - 2 * value);
 
   const update = () => {
@@ -96,7 +108,7 @@ function initScrollJourney(hero) {
     // frames and skip whole cards. A capped chase bounds the movement per
     // animation frame so scenes and cards always cross one after another.
     const chaseRate = .12;
-    const maxStep = lightMode ? .008 : 2;
+    const maxStep = touchMode ? .008 : 2;
     if (Math.abs(scrubDelta) <= .00035) scrubProgress = scrubTarget;
     else scrubProgress += Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta) * chaseRate, maxStep);
     if (Math.abs(scrubDelta) > .012) {
@@ -205,7 +217,7 @@ function initScrollJourney(hero) {
   requestUpdate();
 }
 
-function initImageSequenceScrub(hero, lightMode = false) {
+function initImageSequenceScrub(hero, budget = { active: false }) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
   if (!canvas) return null;
@@ -220,13 +232,17 @@ function initImageSequenceScrub(hero, lightMode = false) {
   const scenes = [SEQUENCE_FRAMES, SEQUENCE_FRAMES];
   const FRAME_WIDTH = 1600;
   const FRAME_HEIGHT = 900;
-  // Light mode (touch/narrow) shrinks every cap that drives mobile jank:
-  // decode resolution is halved, concurrency and the in-memory window shrink,
-  // and the full warm-ahead of all frames is skipped.
-  const KEEP_WINDOW = lightMode ? 6 : 16;
-  const EDGE_KEEP = lightMode ? 2 : 4;
-  const MAX_CONCURRENT = lightMode ? 1 : 2;
-  const DECODE_OPTIONS = lightMode ? { resizeWidth: 960, resizeHeight: 540, resizeQuality: 'low' } : undefined;
+  // Budget mode (touch, low battery or data saver) shrinks every cap that
+  // drives jank and drain: decode resolution is halved, concurrency and the
+  // in-memory window shrink, and the full warm-ahead of all frames is skipped.
+  // Caps are resolved each time they are used so a mid-session drop to budget
+  // mode applies immediately instead of waiting for a fresh page load.
+  const decodeOptions = () => budget.active
+    ? { resizeWidth: 960, resizeHeight: 540, resizeQuality: 'low' }
+    : undefined;
+  const keepWindow = () => budget.active ? 6 : 16;
+  const edgeKeep = () => budget.active ? 2 : 4;
+  const maxConcurrent = () => budget.active ? 1 : 2;
   const totalFrames = scenes.reduce((sum, count) => sum + count, 0);
   const caches = scenes.map(() => new Map());
   const inflight = new Map();
@@ -270,21 +286,21 @@ function initImageSequenceScrub(hero, lightMode = false) {
     caches.forEach((cache, sceneIndex) => {
       if (sceneIndex === desiredScene) {
         cache.forEach((bitmap, frame) => {
-          if (Math.abs(frame - desiredFrame) > KEEP_WINDOW) {
+          if (Math.abs(frame - desiredFrame) > keepWindow()) {
             bitmap.close();
             cache.delete(frame);
           }
         });
       } else if (sceneIndex === desiredScene - 1) {
         cache.forEach((bitmap, frame) => {
-          if (frame < scenes[sceneIndex] - EDGE_KEEP) {
+          if (frame < scenes[sceneIndex] - edgeKeep()) {
             bitmap.close();
             cache.delete(frame);
           }
         });
       } else if (sceneIndex === desiredScene + 1) {
         cache.forEach((bitmap, frame) => {
-          if (frame >= EDGE_KEEP) {
+          if (frame >= edgeKeep()) {
             bitmap.close();
             cache.delete(frame);
           }
@@ -298,7 +314,7 @@ function initImageSequenceScrub(hero, lightMode = false) {
 
   const pump = () => {
     queue.sort((a, b) => a.priority - b.priority);
-    while (inflight.size < MAX_CONCURRENT && queue.length) {
+    while (inflight.size < maxConcurrent() && queue.length) {
       const item = queue.shift();
       queued.delete(item.key);
       if (caches[item.scene].has(item.frame) || inflight.has(item.key)) continue;
@@ -307,7 +323,7 @@ function initImageSequenceScrub(hero, lightMode = false) {
           if (!response.ok) throw new Error('frame fetch failed');
           return response.blob();
         })
-        .then((blob) => createImageBitmap(blob, DECODE_OPTIONS));
+        .then((blob) => createImageBitmap(blob, decodeOptions()));
       inflight.set(item.key, promise);
       Promise.resolve(promise).then((bitmap) => {
         inflight.delete(item.key);
@@ -332,17 +348,17 @@ function initImageSequenceScrub(hero, lightMode = false) {
     queue.push({ scene, frame, priority, key });
     // Kick the looper whenever it has headroom so requests submitted after an
     // idle window are still picked up instead of piling up in the queue.
-    if (inflight.size < MAX_CONCURRENT) pump();
+    if (inflight.size < maxConcurrent()) pump();
   };
 
   // Warm the browser cache for every remaining frame during idle time, so that
   // scrubbing only ever hits the in-memory HTTP cache instead of the network.
-  // Skipped on touch: fetching 150 full frames on a mobile connection is the
-  // single heaviest cost of the journey, and the small light-mode window keeps
-  // every frame that matters within a couple of decodes of the current one.
+  // Skipped in budget mode: fetching 150 full frames on a constrained device is
+  // the single heaviest cost of the journey, and the small window keeps every
+  // frame that matters within a couple of decodes of the current one.
   let warmCursor = 0;
   let warmActive = 0;
-  let warmRunning = !lightMode;
+  let warmRunning = !budget.active;
   const scheduleIdle = (fn) => {
     if (!warmRunning) return;
     if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 3000 });
@@ -350,7 +366,7 @@ function initImageSequenceScrub(hero, lightMode = false) {
   };
   const warmNext = () => {
     if (!warmRunning) return;
-    while (warmActive < MAX_CONCURRENT && warmCursor < totalFrames) {
+    while (warmActive < maxConcurrent() && warmCursor < totalFrames) {
       const flat = warmCursor;
       warmCursor += 1;
       const scene = Math.floor(flat / scenes[0]);
@@ -368,7 +384,7 @@ function initImageSequenceScrub(hero, lightMode = false) {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       warmRunning = false;
-    } else if (warmCursor < totalFrames) {
+    } else if (warmCursor < totalFrames && !budget.active) {
       warmRunning = true;
       scheduleIdle(warmNext);
     }
@@ -380,7 +396,7 @@ function initImageSequenceScrub(hero, lightMode = false) {
   pump();
   scheduleIdle(warmNext);
 
-  return (timelineProgress) => {
+  const scrub = (timelineProgress) => {
     const scaled = clamp(timelineProgress) * scenes.length;
     const scene = Math.min(scenes.length - 1, Math.floor(scaled));
     const local = clamp(scaled - scene);
@@ -388,17 +404,33 @@ function initImageSequenceScrub(hero, lightMode = false) {
     desiredScene = scene;
     desiredFrame = frame;
     request(scene, frame, 0);
-    for (let step = 1; step <= KEEP_WINDOW; step += 1) {
+    for (let step = 1; step <= keepWindow(); step += 1) {
       request(scene, frame + step, 1);
       request(scene, frame - step, 1);
     }
     if (scene < scenes.length - 1) {
-      for (let offset = 0; offset < EDGE_KEEP; offset += 1) request(scene + 1, offset, 2);
+      for (let offset = 0; offset < edgeKeep(); offset += 1) request(scene + 1, offset, 2);
     }
     if (scene > 0) {
-      for (let offset = scenes[scene - 1] - EDGE_KEEP; offset < scenes[scene - 1]; offset += 1) request(scene - 1, offset, 2);
+      for (let offset = scenes[scene - 1] - edgeKeep(); offset < scenes[scene - 1]; offset += 1) request(scene - 1, offset, 2);
     }
     evict();
     renderClosest();
   };
+
+  scrub.setBudget = (next) => {
+    budget.active = next;
+    if (next) {
+      // Entering budget mode mid-scrub: stop the warm-ahead and free the in
+      // memory bitmaps that no longer fit the tightened window right away.
+      warmRunning = false;
+      warmActive = 0;
+      evict();
+    } else if (warmCursor < totalFrames) {
+      warmRunning = true;
+      scheduleIdle(warmNext);
+    }
+  };
+
+  return scrub;
 }

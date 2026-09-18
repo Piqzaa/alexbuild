@@ -1,4 +1,5 @@
 import { prefersReducedMotion } from './utils.js';
+import { isBudgetMode, onPowerChange } from './power.js';
 
 const DARK_ZONE_SELECTOR = '.hero, .work, .launch, .method, .contact, .footer';
 
@@ -12,6 +13,10 @@ export function initAmbientParticles() {
   if (!context || !zones.length) return;
 
   const reduceMotion = prefersReducedMotion();
+  // Budget mode (touch, low battery, data saver or reduced motion) settles for
+  // a single static frame instead of a dozen requestAnimationFrame ticks per
+  // second: the gold-dust atmosphere stays, the perpetual CPU cost disappears.
+  const budget = { active: isBudgetMode() };
   const compact = window.matchMedia('(max-width: 700px)').matches;
   const count = compact ? 26 : 56;
   const targetFrameTime = compact ? 42 : 32;
@@ -117,8 +122,20 @@ export function initAmbientParticles() {
     });
 
     context.restore();
-    animationFrame = reduceMotion ? null : requestAnimationFrame(draw);
+    animationFrame = reduceMotion || budget.active ? null : requestAnimationFrame(draw);
   };
+
+  // A mid-session drop into budget mode freezes the loop after the next frame;
+  // leaving it resumes the gentle ambient drift without a reload. The loop is
+  // only ever re-armed from updateGeometry, so freezing means cancelling the
+  // pending frame and letting the next scroll/resize refresh settle into one.
+  onPowerChange(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
+    updateGeometry();
+  });
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) updateGeometry();

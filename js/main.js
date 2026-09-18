@@ -11,10 +11,12 @@ import { initExperience } from './experience.js';
 import { initAmbientParticles } from './particles.js';
 import { initContactForm } from './contact-form.js';
 import { initLaunchSphere } from './launch-sphere.js';
+import { initPowerWatcher } from './power.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.replace('no-js', 'js');
 
+  try { initPowerWatcher(); } catch(e) { console.error('Power watcher init failed:', e); }
   try { initNav(); } catch(e) { console.error('Nav init failed:', e); }
   try { initHero(); } catch(e) { console.error('Hero init failed:', e); }
   try { initAnimations(); } catch(e) { console.error('Animations init failed:', e); }
