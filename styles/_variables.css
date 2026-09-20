@@ -16,7 +16,7 @@
   --line-light: #bdb5a9;
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', Arial, sans-serif;
-  --container: 1240px;
+  --container: 1440px;
   --pad: clamp(1rem, 4vw, 3rem);
   --section: clamp(5.5rem, 11vw, 10rem);
   --ease: cubic-bezier(.16, 1, .3, 1);

@@ -38,6 +38,7 @@
 .contact__choices input:checked+span{color:#1a1719;background:var(--gold-light)}
 .contact__choices input:focus-visible+span{position:relative;z-index:1;outline:2px solid var(--gold-light);outline-offset:-3px}
 .contact__message{grid-column:1/-1}
+.contact__automation[hidden]{display:none!important}
 .contact__form textarea{min-height:150px}
 .contact__consent{grid-template-columns:1.25rem 1fr;gap:1rem!important;margin:1.5rem 0 2rem;font-size:.7rem!important}
 .contact__consent input{width:1.1rem;height:1.1rem;margin-top:.16rem}
