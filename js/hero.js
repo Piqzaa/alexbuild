@@ -229,14 +229,18 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const FRAME_WIDTH = 1920;
-  const FRAME_HEIGHT = 1080;
+  const physicalWidth = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
+  const physicalHeight = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
+  const useHighResolution = !budget.active && physicalWidth >= 2200 && physicalHeight >= 1100;
+  const FRAME_WIDTH = useHighResolution ? 2560 : 1920;
+  const FRAME_HEIGHT = useHighResolution ? 1440 : 1080;
+  const frameVariant = useHighResolution ? '-1440' : '';
   const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
   // tighten the sequence without reloading the page.
-  const lookAhead = () => budget.active ? 6 : 10;
-  const lookBehind = () => budget.active ? 3 : 5;
-  const maxConcurrent = () => budget.active ? 2 : 3;
+  const lookAhead = () => budget.active ? 6 : useHighResolution ? 6 : 10;
+  const lookBehind = () => budget.active ? 3 : useHighResolution ? 3 : 5;
+  const maxConcurrent = () => budget.active || useHighResolution ? 2 : 3;
   const decodeOptions = () => budget.active
     ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
     : undefined;
@@ -255,7 +259,7 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   const framePath = (flatFrame) => {
     const scene = Math.floor(flatFrame / SEQUENCE_FRAMES) + 1;
     const frame = flatFrame % SEQUENCE_FRAMES + 1;
-    return `assets/hero-tech-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai1`;
+    return `assets/hero-tech-frames-${scene}${frameVariant}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai2`;
   };
 
   const activeWindow = () => direction > 0

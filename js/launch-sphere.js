@@ -16,7 +16,7 @@ export function initLaunchSphere() {
       // fallback stays in that case, with zero JS weight.
       if (isBudgetMode()) return;
       try {
-        const T = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+        const T = await import('../assets/vendor/three/three.module.min.js');
         if (isBudgetMode() || activeDispose) return;
         activeDispose = createMedal(T, shell);
       } catch { shell.classList.remove('is-webgl'); }

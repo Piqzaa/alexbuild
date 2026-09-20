@@ -4,13 +4,13 @@
  */
 
 import { initNav } from './nav.js';
-import { initHero } from './hero.js?v=20260920c';
+import { initHero } from './hero.js?v=20260920d';
 import { initAnimations } from './animations.js';
 import { initAuditTool } from './audit-tool.js';
 import { initExperience } from './experience.js';
 import { initAmbientParticles } from './particles.js?v=20260920';
 import { initContactForm } from './contact-form.js';
-import { initLaunchSphere } from './launch-sphere.js';
+import { initLaunchSphere } from './launch-sphere.js?v=20260920d';
 import { initPowerWatcher } from './power.js';
 
 document.addEventListener('DOMContentLoaded', () => {
