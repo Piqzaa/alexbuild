@@ -1,5 +1,5 @@
 ﻿import { prefersReducedMotion } from './utils.js';
-import { isCoarse, isNarrow, isBudgetMode, onPowerChange } from './power.js';
+import { isBudgetMode, onPowerChange } from './power.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const SEQUENCE_FRAMES = 75;
@@ -68,10 +68,6 @@ function initScrollJourney(hero) {
   let scrubTarget = 0;
   let scrubProgress = 0;
   let settleTimer = null;
-  // Touch browsers dispatch sparse, oversized scroll deltas during flings.
-  // The chase stays a "touch mode" concern: cap the amount the visual may move
-  // per frame so scenes and cards always cross one after another on mobile.
-  const touchMode = isCoarse() || isNarrow();
   // Budget mode bounds every heavy cost instead: decode size, concurrency,
   // cache window and the full warm-ahead of frames. It engages on touch but
   // can also kick in mid-session on low battery or reduced data mode.
@@ -222,7 +218,7 @@ function initScrollJourney(hero) {
 function initImageSequenceScrub(hero, budget = { active: false }) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
-  if (!canvas || typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return null;
+  if (!canvas || typeof fetch !== 'function') return null;
 
   const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!context) return null;
@@ -238,8 +234,12 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
   // tighten the sequence without reloading the page.
-  const lookAhead = () => budget.active ? 6 : useHighResolution ? 6 : 10;
-  const lookBehind = () => budget.active ? 3 : useHighResolution ? 3 : 5;
+  const lookAhead = () => budget.active ? 10 : useHighResolution ? 6 : 12;
+  const lookBehind = () => budget.active ? 5 : useHighResolution ? 3 : 7;
+  // Network requests need a wider survival window than decoded frames. On a
+  // local server a frame resolves before the next paint; in production, the
+  // previous implementation could abort it after only a few scroll ticks.
+  const retention = () => budget.active ? 12 : useHighResolution ? 8 : 16;
   const maxConcurrent = () => budget.active || useHighResolution ? 2 : 3;
   const decodeOptions = () => budget.active
     ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
@@ -252,6 +252,7 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   let previousFrame = 0;
   let direction = 1;
   let drawnFrame = -1;
+  let failedLoads = 0;
 
   canvas.width = FRAME_WIDTH;
   canvas.height = FRAME_HEIGHT;
@@ -262,9 +263,45 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
     return `assets/hero-tech-frames-${scene}${frameVariant}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai2`;
   };
 
-  const activeWindow = () => direction > 0
-    ? [desiredFrame - lookBehind(), desiredFrame + lookAhead()]
-    : [desiredFrame - lookAhead(), desiredFrame + lookBehind()];
+  const retentionWindow = () => [
+    Math.max(0, desiredFrame - retention()),
+    Math.min(TOTAL_FRAMES - 1, desiredFrame + retention()),
+  ];
+
+  const decodeWithImage = (blob) => new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(blob);
+    image.decoding = 'async';
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('frame image decode failed'));
+    };
+    image.src = objectUrl;
+  });
+
+  const decodeFrame = async (blob) => {
+    if (typeof createImageBitmap === 'function') {
+      const options = decodeOptions();
+      if (options) {
+        try {
+          return await createImageBitmap(blob, options);
+        } catch (_) {
+          // Safari versions differ on support for resize options. Retry the
+          // standards baseline before using an HTML image as the final path.
+        }
+      }
+      try {
+        return await createImageBitmap(blob);
+      } catch (_) {
+        // Some iOS/WebKit builds expose createImageBitmap but reject WebP.
+      }
+    }
+    return decodeWithImage(blob);
+  };
 
   const renderClosest = () => {
     let frame = desiredFrame;
@@ -283,14 +320,14 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
     if (!bitmap || frame === drawnFrame) return;
     drawnFrame = frame;
     context.drawImage(bitmap, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+    failedLoads = 0;
+    hero.classList.remove('is-sequence-failed');
     hero.classList.add('is-sequence-ready');
     loader?.setAttribute('aria-hidden', 'true');
   };
 
   const prune = () => {
-    const [rawMin, rawMax] = activeWindow();
-    const min = Math.max(0, rawMin);
-    const max = Math.min(TOTAL_FRAMES - 1, rawMax);
+    const [min, max] = retentionWindow();
 
     for (let index = queue.length - 1; index >= 0; index -= 1) {
       const item = queue[index];
@@ -304,7 +341,7 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
     });
     cache.forEach((bitmap, frame) => {
       if (frame < min || frame > max) {
-        bitmap.close();
+        bitmap.close?.();
         cache.delete(frame);
       }
     });
@@ -318,24 +355,33 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
       if (cache.has(item.frame) || inflight.has(item.frame)) continue;
 
       const controller = new AbortController();
-      const promise = fetch(framePath(item.frame), { signal: controller.signal })
+      const promise = fetch(framePath(item.frame), { signal: controller.signal, cache: 'force-cache' })
         .then((response) => {
           if (!response.ok) throw new Error('frame fetch failed');
           return response.blob();
         })
-        .then((blob) => createImageBitmap(blob, decodeOptions()));
+        .then(decodeFrame);
       inflight.set(item.frame, { controller, frame: item.frame, promise });
 
       promise.then((bitmap) => {
-        const [min, max] = activeWindow();
+        const [min, max] = retentionWindow();
         if (item.frame < min || item.frame > max) {
-          bitmap.close();
+          bitmap.close?.();
           return;
         }
-        cache.get(item.frame)?.close();
+        cache.get(item.frame)?.close?.();
         cache.set(item.frame, bitmap);
         renderClosest();
-      }).catch(() => {}).finally(() => {
+      }).catch((error) => {
+        if (error?.name === 'AbortError') return;
+        failedLoads += 1;
+        // Never leave an opaque blank canvas over the real poster. A later
+        // successful frame removes this state automatically.
+        if (!cache.size && failedLoads >= 4) {
+          hero.classList.add('is-sequence-failed');
+          loader?.setAttribute('aria-hidden', 'true');
+        }
+      }).finally(() => {
         inflight.delete(item.frame);
         pump();
       });
