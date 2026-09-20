@@ -4,11 +4,11 @@
  */
 
 import { initNav } from './nav.js';
-import { initHero } from './hero.js';
+import { initHero } from './hero.js?v=20260920c';
 import { initAnimations } from './animations.js';
 import { initAuditTool } from './audit-tool.js';
 import { initExperience } from './experience.js';
-import { initAmbientParticles } from './particles.js';
+import { initAmbientParticles } from './particles.js?v=20260920';
 import { initContactForm } from './contact-form.js';
 import { initLaunchSphere } from './launch-sphere.js';
 import { initPowerWatcher } from './power.js';

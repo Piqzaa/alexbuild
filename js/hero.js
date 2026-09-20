@@ -229,8 +229,8 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const FRAME_WIDTH = 1600;
-  const FRAME_HEIGHT = 900;
+  const FRAME_WIDTH = 1920;
+  const FRAME_HEIGHT = 1080;
   const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
   // tighten the sequence without reloading the page.
@@ -255,7 +255,7 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   const framePath = (flatFrame) => {
     const scene = Math.floor(flatFrame / SEQUENCE_FRAMES) + 1;
     const frame = flatFrame % SEQUENCE_FRAMES + 1;
-    return `assets/hero-tech-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp`;
+    return `assets/hero-tech-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai1`;
   };
 
   const activeWindow = () => direction > 0
