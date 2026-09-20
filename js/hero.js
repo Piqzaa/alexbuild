@@ -108,7 +108,9 @@ function initScrollJourney(hero) {
     // frames and skip whole cards. A capped chase bounds the movement per
     // animation frame so scenes and cards always cross one after another.
     const chaseRate = .12;
-    const maxStep = touchMode ? .008 : 2;
+    // Advance by at most one source frame per paint. A large wheel or touch
+    // delta therefore stays cinematic instead of jumping over visual beats.
+    const maxStep = 1 / (SEQUENCE_FRAMES * 2 - 1);
     if (Math.abs(scrubDelta) <= .00035) scrubProgress = scrubTarget;
     else scrubProgress += Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta) * chaseRate, maxStep);
     if (Math.abs(scrubDelta) > .012) {
@@ -220,216 +222,155 @@ function initScrollJourney(hero) {
 function initImageSequenceScrub(hero, budget = { active: false }) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
-  if (!canvas) return null;
-  if (typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return null;
+  if (!canvas || typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return null;
+
   const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!context) return null;
-  // High-quality smoothing limits visible upscaling when the canvas is larger
-  // than the extracted frames on very wide displays.
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const scenes = [SEQUENCE_FRAMES, SEQUENCE_FRAMES];
   const FRAME_WIDTH = 1600;
   const FRAME_HEIGHT = 900;
-  // Budget mode (touch, low battery or data saver) shrinks every cap that
-  // drives jank and drain: decode resolution is halved, concurrency and the
-  // in-memory window shrink, and the full warm-ahead of all frames is skipped.
-  // Caps are resolved each time they are used so a mid-session drop to budget
-  // mode applies immediately instead of waiting for a fresh page load.
+  const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
+  // These budgets are resolved dynamically so battery/data-saving changes can
+  // tighten the sequence without reloading the page.
+  const lookAhead = () => budget.active ? 6 : 10;
+  const lookBehind = () => budget.active ? 3 : 5;
+  const maxConcurrent = () => budget.active ? 2 : 3;
   const decodeOptions = () => budget.active
-    ? { resizeWidth: 960, resizeHeight: 540, resizeQuality: 'low' }
+    ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
     : undefined;
-  const keepWindow = () => budget.active ? 6 : 16;
-  const edgeKeep = () => budget.active ? 2 : 4;
-  const maxConcurrent = () => budget.active ? 1 : 2;
-  const totalFrames = scenes.reduce((sum, count) => sum + count, 0);
-  const caches = scenes.map(() => new Map());
+  const cache = new Map();
   const inflight = new Map();
   const queue = [];
   const queued = new Set();
-  let desiredScene = 0;
   let desiredFrame = 0;
-  let drawnKey = '';
+  let previousFrame = 0;
+  let direction = 1;
+  let drawnFrame = -1;
 
   canvas.width = FRAME_WIDTH;
   canvas.height = FRAME_HEIGHT;
 
-  const path = (scene, frame) => `assets/hero-tech-frames-${scene + 1}/frame-${String(frame + 1).padStart(4, '0')}.webp`;
+  const framePath = (flatFrame) => {
+    const scene = Math.floor(flatFrame / SEQUENCE_FRAMES) + 1;
+    const frame = flatFrame % SEQUENCE_FRAMES + 1;
+    return `assets/hero-tech-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp`;
+  };
+
+  const activeWindow = () => direction > 0
+    ? [desiredFrame - lookBehind(), desiredFrame + lookAhead()]
+    : [desiredFrame - lookAhead(), desiredFrame + lookBehind()];
 
   const renderClosest = () => {
     let frame = desiredFrame;
-    let bitmap = caches[desiredScene].get(frame);
+    let bitmap = cache.get(frame);
     if (!bitmap) {
-      let closestDistance = Infinity;
-      caches[desiredScene].forEach((candidate, index) => {
-        const distance = Math.abs(index - desiredFrame);
-        if (distance < closestDistance) {
-          closestDistance = distance;
+      let distance = Infinity;
+      cache.forEach((candidate, candidateFrame) => {
+        const candidateDistance = Math.abs(candidateFrame - desiredFrame);
+        if (candidateDistance < distance) {
+          distance = candidateDistance;
+          frame = candidateFrame;
           bitmap = candidate;
-          frame = index;
         }
       });
     }
-    if (!bitmap) return;
-    const key = `${desiredScene}:${frame}`;
-    if (key === drawnKey) return;
-    drawnKey = key;
+    if (!bitmap || frame === drawnFrame) return;
+    drawnFrame = frame;
     context.drawImage(bitmap, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
     hero.classList.add('is-sequence-ready');
     loader?.setAttribute('aria-hidden', 'true');
   };
 
-  // Bounded memory: decoded bitmaps are freed as soon as they leave a window
-  // around the current position. Only the seam of nearby scenes is retained.
-  const evict = () => {
-    caches.forEach((cache, sceneIndex) => {
-      if (sceneIndex === desiredScene) {
-        cache.forEach((bitmap, frame) => {
-          if (Math.abs(frame - desiredFrame) > keepWindow()) {
-            bitmap.close();
-            cache.delete(frame);
-          }
-        });
-      } else if (sceneIndex === desiredScene - 1) {
-        cache.forEach((bitmap, frame) => {
-          if (frame < scenes[sceneIndex] - edgeKeep()) {
-            bitmap.close();
-            cache.delete(frame);
-          }
-        });
-      } else if (sceneIndex === desiredScene + 1) {
-        cache.forEach((bitmap, frame) => {
-          if (frame >= edgeKeep()) {
-            bitmap.close();
-            cache.delete(frame);
-          }
-        });
-      } else {
-        cache.forEach((bitmap) => bitmap.close());
-        cache.clear();
+  const prune = () => {
+    const [rawMin, rawMax] = activeWindow();
+    const min = Math.max(0, rawMin);
+    const max = Math.min(TOTAL_FRAMES - 1, rawMax);
+
+    for (let index = queue.length - 1; index >= 0; index -= 1) {
+      const item = queue[index];
+      if (item.frame < min || item.frame > max) {
+        queued.delete(item.frame);
+        queue.splice(index, 1);
+      }
+    }
+    inflight.forEach((item) => {
+      if (item.frame < min || item.frame > max) item.controller.abort();
+    });
+    cache.forEach((bitmap, frame) => {
+      if (frame < min || frame > max) {
+        bitmap.close();
+        cache.delete(frame);
       }
     });
   };
 
   const pump = () => {
-    queue.sort((a, b) => a.priority - b.priority);
+    queue.sort((a, b) => a.priority - b.priority || Math.abs(a.frame - desiredFrame) - Math.abs(b.frame - desiredFrame));
     while (inflight.size < maxConcurrent() && queue.length) {
       const item = queue.shift();
-      queued.delete(item.key);
-      if (caches[item.scene].has(item.frame) || inflight.has(item.key)) continue;
-      const promise = fetch(path(item.scene, item.frame))
+      queued.delete(item.frame);
+      if (cache.has(item.frame) || inflight.has(item.frame)) continue;
+
+      const controller = new AbortController();
+      const promise = fetch(framePath(item.frame), { signal: controller.signal })
         .then((response) => {
           if (!response.ok) throw new Error('frame fetch failed');
           return response.blob();
         })
         .then((blob) => createImageBitmap(blob, decodeOptions()));
-      inflight.set(item.key, promise);
-      Promise.resolve(promise).then((bitmap) => {
-        inflight.delete(item.key);
-        const previous = caches[item.scene].get(item.frame);
-        if (previous) previous.close();
-        caches[item.scene].set(item.frame, bitmap);
-        evict();
+      inflight.set(item.frame, { controller, frame: item.frame, promise });
+
+      promise.then((bitmap) => {
+        const [min, max] = activeWindow();
+        if (item.frame < min || item.frame > max) {
+          bitmap.close();
+          return;
+        }
+        cache.get(item.frame)?.close();
+        cache.set(item.frame, bitmap);
         renderClosest();
-      }).catch(() => {
-        inflight.delete(item.key);
-      }).finally(() => {
-        if (queue.length) pump();
+      }).catch(() => {}).finally(() => {
+        inflight.delete(item.frame);
+        pump();
       });
     }
   };
 
-  const request = (scene, frame, priority = 2) => {
-    if (scene < 0 || scene >= scenes.length || frame < 0 || frame >= scenes[scene]) return;
-    const key = `${scene}:${frame}`;
-    if (caches[scene].has(frame) || inflight.has(key) || queued.has(key)) return;
-    queued.add(key);
-    queue.push({ scene, frame, priority, key });
-    // Kick the looper whenever it has headroom so requests submitted after an
-    // idle window are still picked up instead of piling up in the queue.
-    if (inflight.size < maxConcurrent()) pump();
+  const request = (frame, priority) => {
+    if (frame < 0 || frame >= TOTAL_FRAMES || cache.has(frame) || inflight.has(frame) || queued.has(frame)) return;
+    queued.add(frame);
+    queue.push({ frame, priority });
   };
 
-  // Warm the browser cache for every remaining frame during idle time, so that
-  // scrubbing only ever hits the in-memory HTTP cache instead of the network.
-  // Skipped in budget mode: fetching 150 full frames on a constrained device is
-  // the single heaviest cost of the journey, and the small window keeps every
-  // frame that matters within a couple of decodes of the current one.
-  let warmCursor = 0;
-  let warmActive = 0;
-  let warmRunning = !budget.active;
-  const scheduleIdle = (fn) => {
-    if (!warmRunning) return;
-    if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 3000 });
-    else setTimeout(fn, 120);
-  };
-  const warmNext = () => {
-    if (!warmRunning) return;
-    while (warmActive < maxConcurrent() && warmCursor < totalFrames) {
-      const flat = warmCursor;
-      warmCursor += 1;
-      const scene = Math.floor(flat / scenes[0]);
-      const frame = flat % scenes[0];
-      warmActive += 1;
-      fetch(path(scene, frame))
-        .then((response) => response.blob())
-        .catch(() => {})
-        .finally(() => {
-          warmActive -= 1;
-          scheduleIdle(warmNext);
-        });
+  const requestWindow = () => {
+    prune();
+    request(desiredFrame, 0);
+    const forwardCount = direction > 0 ? lookAhead() : lookBehind();
+    const backwardCount = direction > 0 ? lookBehind() : lookAhead();
+    for (let step = 1; step <= Math.max(forwardCount, backwardCount); step += 1) {
+      if (step <= forwardCount) request(desiredFrame + step, 1);
+      if (step <= backwardCount) request(desiredFrame - step, 2);
     }
+    pump();
+    renderClosest();
   };
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      warmRunning = false;
-    } else if (warmCursor < totalFrames && !budget.active) {
-      warmRunning = true;
-      scheduleIdle(warmNext);
-    }
-  }, { passive: true });
 
-  // Warm the first frames immediately so the desktop hero never starts blank.
-  request(0, 0, 0);
-  request(0, 1, 1);
-  pump();
-  scheduleIdle(warmNext);
+  requestWindow();
 
   const scrub = (timelineProgress) => {
-    const scaled = clamp(timelineProgress) * scenes.length;
-    const scene = Math.min(scenes.length - 1, Math.floor(scaled));
-    const local = clamp(scaled - scene);
-    const frame = Math.round(local * (scenes[scene] - 1));
-    desiredScene = scene;
-    desiredFrame = frame;
-    request(scene, frame, 0);
-    for (let step = 1; step <= keepWindow(); step += 1) {
-      request(scene, frame + step, 1);
-      request(scene, frame - step, 1);
-    }
-    if (scene < scenes.length - 1) {
-      for (let offset = 0; offset < edgeKeep(); offset += 1) request(scene + 1, offset, 2);
-    }
-    if (scene > 0) {
-      for (let offset = scenes[scene - 1] - edgeKeep(); offset < scenes[scene - 1]; offset += 1) request(scene - 1, offset, 2);
-    }
-    evict();
-    renderClosest();
+    const nextFrame = Math.round(clamp(timelineProgress) * (TOTAL_FRAMES - 1));
+    if (nextFrame !== previousFrame) direction = nextFrame > previousFrame ? 1 : -1;
+    previousFrame = nextFrame;
+    desiredFrame = nextFrame;
+    requestWindow();
   };
 
   scrub.setBudget = (next) => {
     budget.active = next;
-    if (next) {
-      // Entering budget mode mid-scrub: stop the warm-ahead and free the in
-      // memory bitmaps that no longer fit the tightened window right away.
-      warmRunning = false;
-      warmActive = 0;
-      evict();
-    } else if (warmCursor < totalFrames) {
-      warmRunning = true;
-      scheduleIdle(warmNext);
-    }
+    prune();
+    requestWindow();
   };
 
   return scrub;
