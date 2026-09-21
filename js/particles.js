@@ -1,7 +1,7 @@
 import { prefersReducedMotion } from './utils.js';
 import { isBudgetMode, onPowerChange } from './power.js';
 
-const DARK_ZONE_SELECTOR = '.hero, .work, .launch, .method, .contact, .footer';
+const DARK_ZONE_SELECTOR = '.hero, .work, .method, .contact, .footer';
 
 export function initAmbientParticles() {
   const canvas = document.querySelector('[data-ambient-particles]');

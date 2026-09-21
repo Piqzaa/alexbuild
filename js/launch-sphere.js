@@ -17,7 +17,7 @@ export function initLaunchSphere() {
       // visible until the first WebGL frame has rendered successfully.
       if (motion.matches) return;
       try {
-        const T = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+        const T = await import('../assets/vendor/three/three.module.min.js');
         if (motion.matches || activeDispose) return;
         activeDispose = createMedal(T, shell);
       } catch { shell.classList.remove('is-webgl'); }

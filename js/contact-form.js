@@ -6,6 +6,39 @@ export function initContactForm() {
   const button = form?.querySelector('button[type="submit"]');
   if (!form || !status || !button) return;
 
+  const automationField = form.querySelector('[data-automation-field]');
+  const automationInput = form.querySelector('[name="automation_task"]');
+  const messageIndex = form.querySelector('[data-message-index]');
+  const syncAutomationField = () => {
+    const projectType = form.querySelector('input[name="project_type"]:checked')?.value;
+    const isAutomation = projectType === 'Automatiser une tâche';
+    if (automationField) {
+      automationField.hidden = !isAutomation;
+      automationField.style.display = isAutomation ? 'grid' : 'none';
+    }
+    if (messageIndex) messageIndex.textContent = isAutomation ? '05' : '04';
+    if (automationInput) {
+      automationInput.required = isAutomation;
+      if (!isAutomation) automationInput.value = '';
+    }
+  };
+
+  form.addEventListener('change', (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.name === 'project_type') {
+      syncAutomationField();
+    }
+  });
+
+  const automationChoice = form.querySelector('input[name="project_type"][value="Automatiser une tâche"]');
+  document.querySelectorAll('[data-automation-cta]').forEach((cta) => {
+    cta.addEventListener('click', () => {
+      if (!(automationChoice instanceof HTMLInputElement)) return;
+      automationChoice.checked = true;
+      syncAutomationField();
+    });
+  });
+  syncAutomationField();
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     form.classList.remove('is-success');
@@ -31,6 +64,7 @@ export function initContactForm() {
           'Nom / entreprise': data.get('name'),
           Email: data.get('email'),
           Besoin: data.get('project_type'),
+          'Tâche à automatiser': data.get('automation_task') || 'Non concerné',
           Message: data.get('message'),
           Consentement: data.get('consent') ? 'Accepté' : 'Non',
           Source: 'Formulaire projet AlexBuild — offre de lancement'
@@ -39,6 +73,7 @@ export function initContactForm() {
       const result = await response.json().catch(() => ({}));
       if (!response.ok || result.success === false || result.success === 'false') throw new Error('Delivery failed');
       form.reset();
+      syncAutomationField();
       form.classList.add('is-success');
       status.textContent = 'Demande envoyée. Je vous répondrai personnellement.';
     } catch {
