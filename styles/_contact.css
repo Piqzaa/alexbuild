@@ -29,14 +29,13 @@
 .contact__form input[type=text],.contact__form input[type=email],.contact__form textarea{min-height:54px;padding:.85rem 0;color:#f5efe9;background:transparent;border:0;border-bottom:1px solid #655a5f;font-size:.92rem;transition:border-color .2s ease,background .2s ease}
 .contact__form input::placeholder,.contact__form textarea::placeholder{color:#847b76;opacity:1}
 .contact__form input[type=text]:focus,.contact__form input[type=email]:focus,.contact__form textarea:focus{outline:0;border-color:var(--gold-light);background:linear-gradient(0deg,rgba(227,189,145,.035),transparent 70%)}
-.contact__need{grid-column:1/-1;min-width:0;padding:0;border:0}
-.contact__need legend{width:100%;margin-bottom:.9rem}
-.contact__choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid #554c51;border-left:1px solid #554c51}
-.contact__choices label{position:relative;display:block;min-width:0;cursor:pointer}
-.contact__choices input{position:absolute;width:1px;height:1px;min-height:0;overflow:hidden;opacity:0}
-.contact__choices label>span{display:flex;min-height:52px;align-items:center;padding:.75rem .9rem;color:#c9c1bb;border-right:1px solid #554c51;border-bottom:1px solid #554c51;font-size:.7rem;transition:color .2s ease,background .2s ease}
-.contact__choices input:checked+span{color:#1a1719;background:var(--gold-light)}
-.contact__choices input:focus-visible+span{position:relative;z-index:1;outline:2px solid var(--gold-light);outline-offset:-3px}
+.contact__need{grid-column:1/-1;min-width:0}
+.contact__select{position:relative;display:block}
+.contact__select::after{content:"";position:absolute;right:.35rem;top:50%;width:.55rem;height:.55rem;border-right:1px solid var(--gold-light);border-bottom:1px solid var(--gold-light);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.contact__form .contact__select select{min-height:56px;padding:.75rem 2.5rem .75rem 0;appearance:none;color:#f5efe9;background:transparent;border:0;border-bottom:1px solid #655a5f;font-size:.92rem;cursor:pointer}
+.contact__form .contact__select select:invalid{color:#a79b91}
+.contact__form .contact__select select:focus-visible{outline:0;border-color:var(--gold-light);box-shadow:0 2px 0 var(--gold-light)}
+.contact__select option{color:#211d21;background:#f5efe9}
 .contact__message{grid-column:1/-1}
 .contact__automation[hidden]{display:none!important}
 .contact__form textarea{min-height:150px}
@@ -56,7 +55,7 @@
 }
 
 @media(max-width:560px){
-  .contact__fields,.contact__choices,.contact__form-head,.contact__submit{grid-template-columns:1fr}
+  .contact__fields,.contact__form-head,.contact__submit{grid-template-columns:1fr}
   .contact__form-head{gap:.75rem}
   .contact__form-head p{justify-self:start}
   .contact__consent{grid-template-columns:1.35rem 1fr;font-size:.76rem!important}

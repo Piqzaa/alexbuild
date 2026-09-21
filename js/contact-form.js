@@ -8,10 +8,10 @@ export function initContactForm() {
 
   const automationField = form.querySelector('[data-automation-field]');
   const automationInput = form.querySelector('[name="automation_task"]');
+  const projectSelect = form.querySelector('select[name="project_type"]');
   const messageIndex = form.querySelector('[data-message-index]');
   const syncAutomationField = () => {
-    const projectType = form.querySelector('input[name="project_type"]:checked')?.value;
-    const isAutomation = projectType === 'Automatiser une tâche';
+    const isAutomation = projectSelect?.value === 'Automatiser une tâche';
     if (automationField) {
       automationField.hidden = !isAutomation;
       automationField.style.display = isAutomation ? 'grid' : 'none';
@@ -24,16 +24,15 @@ export function initContactForm() {
   };
 
   form.addEventListener('change', (event) => {
-    if (event.target instanceof HTMLInputElement && event.target.name === 'project_type') {
+    if (event.target === projectSelect) {
       syncAutomationField();
     }
   });
 
-  const automationChoice = form.querySelector('input[name="project_type"][value="Automatiser une tâche"]');
   document.querySelectorAll('[data-automation-cta]').forEach((cta) => {
     cta.addEventListener('click', () => {
-      if (!(automationChoice instanceof HTMLInputElement)) return;
-      automationChoice.checked = true;
+      if (!(projectSelect instanceof HTMLSelectElement)) return;
+      projectSelect.value = 'Automatiser une tâche';
       syncAutomationField();
     });
   });
