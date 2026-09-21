@@ -68,13 +68,31 @@ function initScrollJourney(hero) {
   let scrubTarget = 0;
   let scrubProgress = 0;
   let settleTimer = null;
+  const timelineStart = .28;
+  const timelineEnd = .965;
+  // The card reaches full opacity at (index + .12 + .16) / card count.
+  // The first card's parent arrival layer reaches full opacity at hero
+  // progress .37, so its stop must come after that as well as its own fade.
+  const storyStops = methodCards.map((_, index) => (index + .28) / methodCards.length + (index === 0 ? .07 : .02));
+  storyStops.push(.98);
+  const readingPauseMs = 600;
+  const wheelGestureGapMs = 500;
+  const bufferWaitMs = 1400;
+  let nextStop = 0;
+  let holdStartedAt = null;
+  let holdTouchGesture = 0;
+  let touchGesture = 0;
+  let lastWheelAt = -Infinity;
+  let lastScrollInputAt = -Infinity;
+  let lastScrollDirection = 0;
+  let bypassStops = false;
   // Budget mode bounds every heavy cost instead: decode size, concurrency,
   // cache window and the full warm-ahead of frames. It engages on touch but
   // can also kick in mid-session on low battery or reduced data mode.
   const budget = { active: isBudgetMode() };
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = initImageSequenceScrub(hero, budget);
+  const sequenceScrub = initImageSequenceScrub(hero, budget, () => requestUpdate());
   onPowerChange(() => {
     const next = isBudgetMode();
     if (next !== budget.active) {
@@ -93,23 +111,35 @@ function initScrollJourney(hero) {
     const fallback = clamp((progress - .94) / .06);
     // Leave the hero copy alone first. The cinematic sequence only starts once
     // the title and CTA have cleared, then runs until the very end of the pin.
-    const timelineStart = .28;
-    const timelineEnd = .965;
     const timelineProgress = clamp((progress - timelineStart) / (timelineEnd - timelineStart));
     scrubTarget = timelineProgress;
     const scrubDelta = scrubTarget - scrubProgress;
-    // Scroll events arrive in large, uneven steps on trackpads and wheels, and
-    // touch flings dispatch a handful of huge leaps. Proportional chasing keeps
-    // desktop fluid, but on touch it would still teleport across dozens of
-    // frames and skip whole cards. A capped chase bounds the movement per
-    // animation frame so scenes and cards always cross one after another.
-    const chaseRate = .12;
-    // Advance by at most one source frame per paint. A large wheel or touch
-    // delta therefore stays cinematic instead of jumping over visual beats.
+    // Keep large wheel deltas sequential without easing the last frames down
+    // to a visibly choppy cadence. Small deltas follow the scroll directly.
     const maxStep = 1 / (SEQUENCE_FRAMES * 2 - 1);
-    if (Math.abs(scrubDelta) <= .00035) scrubProgress = scrubTarget;
-    else scrubProgress += Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta) * chaseRate, maxStep);
-    if (Math.abs(scrubDelta) > .012) {
+    const nextProgress = scrubProgress + Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta), maxStep);
+    // Wait for the exact frame before advancing the cards or the playhead.
+    // The decoder wakes the loop as soon as that frame is available.
+    const waitingForFrame = sequenceScrub ? !sequenceScrub(nextProgress) : false;
+    if (!waitingForFrame) scrubProgress = nextProgress;
+    if (bypassStops) {
+      if (progress < timelineStart) {
+        bypassStops = false;
+        nextStop = 0;
+      }
+    } else {
+      const stop = storyStops[nextStop];
+      if (stop !== undefined && holdStartedAt === null && scrubProgress >= stop - .00035 && scrubTarget >= stop - .00035) {
+        holdStartedAt = performance.now();
+        holdTouchGesture = touchGesture;
+      }
+      if (stop !== undefined && scrubProgress < stop - .02 && scrubTarget < stop - .02) holdStartedAt = null;
+      while (nextStop > 0 && scrubProgress < storyStops[nextStop - 1] - .02) {
+        nextStop -= 1;
+        holdStartedAt = null;
+      }
+    }
+    if (Math.abs(scrubDelta) > .012 || waitingForFrame) {
       hero.classList.add('is-scrubbing-fast');
       clearTimeout(settleTimer);
       settleTimer = setTimeout(() => hero.classList.remove('is-scrubbing-fast'), 140);
@@ -130,7 +160,6 @@ function initScrollJourney(hero) {
     hero.style.setProperty('--hero-arrival-opacity', arrival.toFixed(3));
     hero.style.setProperty('--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
     hero.style.setProperty('--hero-fallback-opacity', fallback.toFixed(3));
-    sequenceScrub?.(scrubProgress);
     const segmentProgress = scrubProgress * Math.max(videos.length, 1);
     const activeIndex = Math.min(videos.length - 1, Math.floor(segmentProgress));
     videos.forEach((video, index) => video.classList.toggle('is-active', index === activeIndex));
@@ -176,12 +205,114 @@ function initScrollJourney(hero) {
       journeyCta.setAttribute('aria-hidden', ctaProgress < .35 ? 'true' : 'false');
     }
     frame = null;
-    if (Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
+    if (!waitingForFrame && Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
   };
 
   const requestUpdate = () => {
     if (!frame) frame = requestAnimationFrame(update);
   };
+
+  // Keep the real scroll within a few frames of the image on screen, with a
+  // short reading stop at each card. A single gesture cannot cross two stops.
+  const scrollBounds = () => {
+    const heroTop = hero.getBoundingClientRect().top + window.scrollY;
+    const distance = Math.max(hero.offsetHeight - window.innerHeight, 1);
+    const start = heroTop + distance * timelineStart;
+    const end = heroTop + distance * timelineEnd;
+    const frameLead = 6 / (SEQUENCE_FRAMES * 2 - 1);
+    const stop = bypassStops ? 1 : storyStops[nextStop] ?? 1;
+    return {
+      start,
+      end,
+      min: start + clamp(scrubProgress - frameLead) * (end - start),
+      max: start + Math.min(clamp(scrubProgress + frameLead), stop) * (end - start),
+      stopAt: start + stop * (end - start),
+    };
+  };
+  const releaseStop = (source, event, now) => {
+    if (holdStartedAt === null || now - holdStartedAt < readingPauseMs) return false;
+    if (now - holdStartedAt < bufferWaitMs && sequenceScrub && !sequenceScrub.hasBufferedAhead(4)) return false;
+    if (source === 'wheel' && now - lastWheelAt < wheelGestureGapMs) return false;
+    if (source === 'touch' && touchGesture <= holdTouchGesture) return false;
+    if (source === 'key' && event.repeat) return false;
+    nextStop += 1;
+    holdStartedAt = null;
+    return true;
+  };
+  const limitJourneyScroll = (event, deltaY, source) => {
+    if (!deltaY || hero.classList.contains('is-sequence-failed')) return;
+    const now = performance.now();
+    lastScrollInputAt = now;
+    lastScrollDirection = Math.sign(deltaY);
+    const { start, end, stopAt } = scrollBounds();
+    const current = window.scrollY;
+    const requested = current + deltaY;
+    if (deltaY > 0 && !bypassStops && nextStop < storyStops.length && requested > stopAt + 1) {
+      releaseStop(source, event, now);
+    }
+    if (source === 'wheel') lastWheelAt = now;
+    const { min, max } = scrollBounds();
+    if (deltaY > 0 && scrubProgress >= 1 - .00035 && current >= end - 2) return;
+    if (deltaY < 0 && scrubProgress <= .00035 && current <= start + 2) return;
+    if (deltaY > 0 && current <= end && requested >= start && requested > max) {
+      event.preventDefault();
+      window.scrollTo({ top: Math.max(current, max), behavior: 'instant' });
+      requestUpdate();
+    } else if (deltaY < 0 && current >= start && requested <= end && requested < min) {
+      event.preventDefault();
+      window.scrollTo({ top: Math.min(current, min), behavior: 'instant' });
+      requestUpdate();
+    }
+  };
+  window.addEventListener('wheel', (event) => {
+    if (event.ctrlKey) return;
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+    limitJourneyScroll(event, event.deltaY * unit, 'wheel');
+  }, { passive: false });
+  let previousTouchY = null;
+  let touchDirection = 0;
+  let touchMomentumTimer = null;
+  window.addEventListener('touchstart', (event) => {
+    clearTimeout(touchMomentumTimer);
+    touchDirection = 0;
+    touchGesture += 1;
+    previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : null;
+  }, { passive: true });
+  window.addEventListener('touchmove', (event) => {
+    if (previousTouchY === null || event.touches.length !== 1) return;
+    const touchY = event.touches[0].clientY;
+    const deltaY = previousTouchY - touchY;
+    previousTouchY = touchY;
+    if (deltaY) touchDirection = Math.sign(deltaY);
+    limitJourneyScroll(event, deltaY, 'touch');
+  }, { passive: false });
+  const finishTouch = () => {
+    previousTouchY = null;
+    clearTimeout(touchMomentumTimer);
+    touchMomentumTimer = setTimeout(() => { touchDirection = 0; }, 2000);
+  };
+  window.addEventListener('touchend', finishTouch, { passive: true });
+  window.addEventListener('touchcancel', finishTouch, { passive: true });
+  window.addEventListener('keydown', (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.target?.closest?.('input, textarea, select, [contenteditable]')) return;
+    const deltaY = event.key === 'ArrowDown' ? 40 : event.key === 'ArrowUp' ? -40
+      : event.key === 'PageDown' ? window.innerHeight * .9 : event.key === 'PageUp' ? -window.innerHeight * .9
+      : event.key === ' ' ? (event.shiftKey ? -window.innerHeight * .9 : window.innerHeight * .9) : 0;
+    if (deltaY) limitJourneyScroll(event, deltaY, 'key');
+  });
+  window.addEventListener('hashchange', () => {
+    bypassStops = true;
+    nextStop = storyStops.length;
+    holdStartedAt = null;
+    lastScrollDirection = 0;
+    touchDirection = 0;
+  });
+  window.addEventListener('click', (event) => {
+    if (event.target?.closest?.('a[href^="#"]')) {
+      lastScrollDirection = 0;
+      touchDirection = 0;
+    }
+  }, { capture: true });
 
   videos.forEach((video, index) => {
     video.addEventListener('loadedmetadata', () => {
@@ -210,12 +341,27 @@ function initScrollJourney(hero) {
   // Image sequence is the primary scrub path. MP4 remains a lightweight
   // fallback for environments where the sequence cannot be decoded.
   if (!sequenceScrub) videos.forEach((video, index) => loadMedia(video, sources[index]));
-  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('scroll', () => {
+    // Native momentum can continue after the last wheel or touch event, and
+    // browser key scrolling can travel farther than its nominal delta.
+    const recentInput = performance.now() - lastScrollInputAt < 1500;
+    const direction = touchDirection || (recentInput ? lastScrollDirection : 0);
+    if (direction && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
+      const { start, end, min, max } = scrollBounds();
+      const current = window.scrollY;
+      if (direction > 0 && scrubProgress < 1 - .00035 && current >= start && current > max) {
+        window.scrollTo({ top: max, behavior: 'instant' });
+      } else if (direction < 0 && scrubProgress > .00035 && current <= end && current < min) {
+        window.scrollTo({ top: min, behavior: 'instant' });
+      }
+    }
+    requestUpdate();
+  }, { passive: true });
   window.addEventListener('resize', requestUpdate, { passive: true });
   requestUpdate();
 }
 
-function initImageSequenceScrub(hero, budget = { active: false }) {
+function initImageSequenceScrub(hero, budget = { active: false }, onFrameReady = () => {}) {
   const canvas = hero.querySelector('[data-hero-sequence]');
   const loader = hero.querySelector('[data-hero-loader]');
   if (!canvas || typeof fetch !== 'function') return null;
@@ -228,8 +374,9 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   const physicalWidth = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
   const physicalHeight = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
   const useHighResolution = !budget.active && physicalWidth >= 2200 && physicalHeight >= 1100;
-  const FRAME_WIDTH = useHighResolution ? 2560 : 1920;
-  const FRAME_HEIGHT = useHighResolution ? 1440 : 1080;
+  const renderWidth = Math.max(physicalWidth, physicalHeight * 16 / 9);
+  const FRAME_WIDTH = useHighResolution ? 2560 : budget.active || renderWidth <= 1280 ? 1280 : 1920;
+  const FRAME_HEIGHT = FRAME_WIDTH * 9 / 16;
   const frameVariant = useHighResolution ? '-1440' : '';
   const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
@@ -241,13 +388,15 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
   // previous implementation could abort it after only a few scroll ticks.
   const retention = () => budget.active ? 12 : useHighResolution ? 8 : 16;
   const maxConcurrent = () => budget.active || useHighResolution ? 2 : 3;
-  const decodeOptions = () => budget.active
+  const decodeOptions = () => budget.active || FRAME_WIDTH === 1280
     ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
     : undefined;
   const cache = new Map();
   const inflight = new Map();
   const queue = [];
   const queued = new Set();
+  const failedFrames = new Set();
+  const failureCounts = new Map();
   let desiredFrame = 0;
   let previousFrame = 0;
   let direction = 1;
@@ -303,27 +452,19 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
     return decodeWithImage(blob);
   };
 
-  const renderClosest = () => {
-    let frame = desiredFrame;
-    let bitmap = cache.get(frame);
-    if (!bitmap) {
-      let distance = Infinity;
-      cache.forEach((candidate, candidateFrame) => {
-        const candidateDistance = Math.abs(candidateFrame - desiredFrame);
-        if (candidateDistance < distance) {
-          distance = candidateDistance;
-          frame = candidateFrame;
-          bitmap = candidate;
-        }
-      });
-    }
-    if (!bitmap || frame === drawnFrame) return;
-    drawnFrame = frame;
+  const renderFrame = (frame) => {
+    // A permanently missing asset must not freeze the whole scroll journey.
+    if (failedFrames.has(frame)) return true;
+    const bitmap = cache.get(frame);
+    if (!bitmap) return false;
+    if (frame === drawnFrame) return true;
     context.drawImage(bitmap, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+    drawnFrame = frame;
     failedLoads = 0;
     hero.classList.remove('is-sequence-failed');
     hero.classList.add('is-sequence-ready');
     loader?.setAttribute('aria-hidden', 'true');
+    return true;
   };
 
   const prune = () => {
@@ -371,10 +512,13 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
         }
         cache.get(item.frame)?.close?.();
         cache.set(item.frame, bitmap);
-        renderClosest();
+        failureCounts.delete(item.frame);
       }).catch((error) => {
         if (error?.name === 'AbortError') return;
         failedLoads += 1;
+        const attempts = (failureCounts.get(item.frame) || 0) + 1;
+        failureCounts.set(item.frame, attempts);
+        if (attempts >= 3) failedFrames.add(item.frame);
         // Never leave an opaque blank canvas over the real poster. A later
         // successful frame removes this state automatically.
         if (!cache.size && failedLoads >= 4) {
@@ -384,12 +528,13 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
       }).finally(() => {
         inflight.delete(item.frame);
         pump();
+        if (item.frame === desiredFrame) onFrameReady();
       });
     }
   };
 
   const request = (frame, priority) => {
-    if (frame < 0 || frame >= TOTAL_FRAMES || cache.has(frame) || inflight.has(frame) || queued.has(frame)) return;
+    if (frame < 0 || frame >= TOTAL_FRAMES || cache.has(frame) || inflight.has(frame) || queued.has(frame) || failedFrames.has(frame)) return;
     queued.add(frame);
     queue.push({ frame, priority });
   };
@@ -404,7 +549,6 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
       if (step <= backwardCount) request(desiredFrame - step, 2);
     }
     pump();
-    renderClosest();
   };
 
   requestWindow();
@@ -415,12 +559,21 @@ function initImageSequenceScrub(hero, budget = { active: false }) {
     previousFrame = nextFrame;
     desiredFrame = nextFrame;
     requestWindow();
+    return renderFrame(nextFrame);
   };
 
   scrub.setBudget = (next) => {
     budget.active = next;
     prune();
     requestWindow();
+  };
+
+  scrub.hasBufferedAhead = (count) => {
+    const last = Math.min(TOTAL_FRAMES - 1, desiredFrame + count);
+    for (let next = desiredFrame + 1; next <= last; next += 1) {
+      if (!cache.has(next) && !failedFrames.has(next)) return false;
+    }
+    return true;
   };
 
   return scrub;

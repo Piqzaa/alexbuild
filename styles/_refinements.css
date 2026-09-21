@@ -229,7 +229,7 @@
   color:var(--card-ink);
   clip-path:inset(calc((1 - var(--method-card-build,0)) * 10%) 0 calc(var(--method-card-dissolve,0) * 10%) 0 round var(--card-radius));
   transform:translate3d(-50%,calc(-50% + var(--method-card-y,4vh)),0) scale(var(--method-card-scale,.94)) rotate(-2deg);
-  transition:opacity .08s linear,filter .08s linear,transform .08s linear,clip-path .08s linear;
+  transition:none;
 }
 .hero__arrival--method .method-card h2{ text-shadow:0 1px 0 rgba(255,255,255,.18) }
 .hero__arrival--method .method-card>p:not(.chapter){font-weight:500}
