@@ -1,38 +1,37 @@
 /** Both printed faces belong to the medal, in one transparent 3D scene. */
-import { isBudgetMode, onPowerChange } from './power.js';
 
 export function initLaunchSphere() {
   const shell = document.querySelector('.launch__sphere-shell');
   if (!shell) return;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let observer = null;
   let activeDispose = null;
 
   const createObserver = () => {
+    if (motion.matches || activeDispose || observer) return;
     observer = new IntersectionObserver(async ([entry]) => {
       if (!entry.isIntersecting) return;
       observer.disconnect();
-      // Loading Three.js (~600 kB) plus a WebGL scene on a constrained device
-      // is a heavy cost for a decorative medal. The static .launch__seal
-      // fallback stays in that case, with zero JS weight.
-      if (isBudgetMode()) return;
+      observer = null;
+      // Load only when the medal is near the viewport. The HTML medal remains
+      // visible until the first WebGL frame has rendered successfully.
+      if (motion.matches) return;
       try {
         const T = await import('../assets/vendor/three/three.module.min.js');
-        if (isBudgetMode() || activeDispose) return;
+        if (motion.matches || activeDispose) return;
         activeDispose = createMedal(T, shell);
       } catch { shell.classList.remove('is-webgl'); }
     }, { rootMargin: '200px' });
     observer.observe(shell);
   };
 
-  // A drop into budget mode tears the WebGL scene down instead of keeping a
-  // decorative frame loop running on battery or a weak network. Releasing it
-  // lets the medal rebuild lazily if the shell is on screen.
-  onPowerChange(() => {
-    if (isBudgetMode()) {
+  motion.addEventListener('change', () => {
+    if (motion.matches) {
       observer?.disconnect();
+      observer = null;
       activeDispose?.();
       activeDispose = null;
-    } else if (!activeDispose) {
+    } else {
       createObserver();
     }
   });
@@ -41,11 +40,12 @@ export function initLaunchSphere() {
 }
 
 function createMedal(T, shell) {
+  const compact = matchMedia('(pointer: coarse)').matches || innerWidth < 901;
   const canvas = document.createElement('canvas');
   canvas.className = 'launch__webgl'; canvas.setAttribute('aria-hidden', 'true');
   const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, compact ? 1.25 : 1.5));
   renderer.outputColorSpace = T.SRGBColorSpace;
   const scene = new T.Scene(), medal = new T.Group();
   const camera = new T.PerspectiveCamera(32, 1, .1, 30);
@@ -86,8 +86,13 @@ function createMedal(T, shell) {
   let visible = false, frame = 0, previous = 0, angle = .2, disposed = false;
   const draw = () => { medal.rotation.set(.08, angle, -.06); renderer.render(scene, camera); };
   const tick = now => {
-    angle += Math.min((now - previous) / 1000, .05) * Math.PI / 7;
-    previous = now; draw(); frame = requestAnimationFrame(tick);
+    // A decorative scene does not need 60 renders per second on a phone.
+    if (!compact || now - previous >= 32) {
+      angle += Math.min((now - previous) / 1000, .05) * Math.PI / 7;
+      previous = now;
+      draw();
+    }
+    frame = requestAnimationFrame(tick);
   };
   const sync = () => {
     cancelAnimationFrame(frame); frame = 0;

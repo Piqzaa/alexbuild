@@ -69,3 +69,12 @@
     to{transform:translate3d(0,-10px,0) rotate(calc(var(--project-rotate,-1deg) * -1))}
   }
 }
+
+/* On narrow screens, cards layer as they pass without trapping the reading flow. */
+@media(max-width:600px){
+  .work__stack{gap:0}
+  .project{isolation:isolate}
+  .project:nth-child(2){z-index:2;margin-top:-1.5rem}
+  .project:nth-child(3){z-index:3;margin-top:-1.5rem}
+  .project__copy{padding-bottom:3rem}
+}

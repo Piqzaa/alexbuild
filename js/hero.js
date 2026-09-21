@@ -85,6 +85,7 @@ function initScrollJourney(hero) {
   let lastWheelAt = -Infinity;
   let lastScrollInputAt = -Infinity;
   let lastScrollDirection = 0;
+  let exitStartedAt = 0;
   let bypassStops = false;
   // Budget mode bounds every heavy cost instead: decode size, concurrency,
   // cache window and the full warm-ahead of frames. It engages on touch but
@@ -137,6 +138,7 @@ function initScrollJourney(hero) {
       while (nextStop > 0 && scrubProgress < storyStops[nextStop - 1] - .02) {
         nextStop -= 1;
         holdStartedAt = null;
+        exitStartedAt = 0;
       }
     }
     if (Math.abs(scrubDelta) > .012 || waitingForFrame) {
@@ -237,6 +239,7 @@ function initScrollJourney(hero) {
     if (source === 'key' && event.repeat) return false;
     nextStop += 1;
     holdStartedAt = null;
+    if (nextStop === storyStops.length) exitStartedAt = now;
     return true;
   };
   const limitJourneyScroll = (event, deltaY, source) => {
@@ -251,6 +254,9 @@ function initScrollJourney(hero) {
       releaseStop(source, event, now);
     }
     if (source === 'wheel') lastWheelAt = now;
+    // Once the final CTA has had its pause, a stalled image decode must not
+    // hold visitors inside the hero indefinitely.
+    if (deltaY > 0 && exitStartedAt && now - exitStartedAt >= 1100) return;
     const { min, max } = scrollBounds();
     if (deltaY > 0 && scrubProgress >= 1 - .00035 && current >= end - 2) return;
     if (deltaY < 0 && scrubProgress <= .00035 && current <= start + 2) return;
@@ -304,6 +310,7 @@ function initScrollJourney(hero) {
     bypassStops = true;
     nextStop = storyStops.length;
     holdStartedAt = null;
+    exitStartedAt = 0;
     lastScrollDirection = 0;
     touchDirection = 0;
   });
@@ -346,7 +353,8 @@ function initScrollJourney(hero) {
     // browser key scrolling can travel farther than its nominal delta.
     const recentInput = performance.now() - lastScrollInputAt < 1500;
     const direction = touchDirection || (recentInput ? lastScrollDirection : 0);
-    if (direction && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
+    const canExit = direction > 0 && exitStartedAt && performance.now() - exitStartedAt >= 1100;
+    if (direction && !canExit && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
       const { start, end, min, max } = scrollBounds();
       const current = window.scrollY;
       if (direction > 0 && scrubProgress < 1 - .00035 && current >= start && current > max) {
