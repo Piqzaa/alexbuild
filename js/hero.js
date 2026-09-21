@@ -214,7 +214,98 @@ function initScrollJourney(hero) {
   if (!sequenceScrub) videos.forEach((video, index) => loadMedia(video, sources[index]));
   window.addEventListener('scroll', requestUpdate, { passive: true });
   window.addEventListener('resize', requestUpdate, { passive: true });
+  initScrollPacing(hero, () => scrubProgress);
   requestUpdate();
+}
+
+function initScrollPacing(hero, getVisualProgress) {
+  const root = document.documentElement;
+  let target = scrollY;
+  let frame = 0;
+  let previousTime = 0;
+  let previousBehavior = '';
+  let lastWheel = 0;
+  let touchY = null;
+  let touchNewGesture = false;
+
+  const stop = () => {
+    if (!frame) return;
+    cancelAnimationFrame(frame);
+    frame = 0;
+    target = scrollY;
+    root.style.scrollBehavior = previousBehavior;
+  };
+
+  const animate = (now) => {
+    const elapsed = Math.min((now - previousTime) / 1000, .05);
+    previousTime = now;
+    const difference = target - scrollY;
+    const distance = Math.max(hero.offsetHeight - innerHeight, 1);
+    const progress = clamp(-hero.getBoundingClientRect().top / distance);
+    const speed = progress < .28 ? Math.max(500, innerHeight * 1.2) : Math.max(320, innerHeight * .6);
+    const step = Math.sign(difference) * Math.min(Math.abs(difference), speed * elapsed);
+    if (Math.abs(difference) > 1) scrollTo(0, scrollY + step);
+    if (Math.abs(target - scrollY) > 1) frame = requestAnimationFrame(animate);
+    else stop();
+  };
+
+  const pace = (delta, isNewGesture = false) => {
+    if (document.body.style.overflow === 'hidden') return false;
+    const start = hero.getBoundingClientRect().top + scrollY;
+    const distance = hero.offsetHeight - innerHeight;
+    const end = start + distance * .97;
+    if (distance <= 0 || scrollY < start - 1 || scrollY > end + 2) return false;
+    if (delta < 0 && scrollY <= start + 1) return false;
+    if (delta > 0 && scrollY >= end - 1) {
+      // The CTA gets a full stop. A following gesture can leave the hero.
+      return !(isNewGesture && getVisualProgress() >= .98);
+    }
+
+    const lead = innerHeight * .28;
+    const input = clamp(delta, -innerHeight * .14, innerHeight * .14);
+    target = clamp((frame ? target : scrollY) + input,
+      Math.max(start, scrollY - lead), Math.min(end, scrollY + lead));
+    if (!frame) {
+      previousBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      previousTime = performance.now();
+      frame = requestAnimationFrame(animate);
+    }
+    return true;
+  };
+
+  window.addEventListener('wheel', (event) => {
+    if (event.defaultPrevented || event.ctrlKey || !event.cancelable) return;
+    const now = performance.now();
+    const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+    const newGesture = now - lastWheel > 250;
+    lastWheel = now;
+    if (pace(delta, newGesture)) event.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchstart', (event) => {
+    touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
+    touchNewGesture = true;
+  }, { passive: true });
+  window.addEventListener('touchmove', (event) => {
+    if (touchY === null || event.touches.length !== 1 || !event.cancelable) return;
+    const nextY = event.touches[0].clientY;
+    const delta = touchY - nextY;
+    touchY = nextY;
+    const newGesture = touchNewGesture;
+    touchNewGesture = false;
+    if (pace(delta, newGesture)) event.preventDefault();
+  }, { passive: false });
+  window.addEventListener('touchend', () => { touchY = null; }, { passive: true });
+  window.addEventListener('touchcancel', () => { touchY = null; }, { passive: true });
+
+  // Direct navigation and keyboard scrolling must never be held by the pacer.
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('a[href^="#"]')) stop();
+  }, true);
+  window.addEventListener('keydown', stop);
+  window.addEventListener('hashchange', stop);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
 }
 
 function initImageSequenceScrub(hero, budget = { active: false }) {
