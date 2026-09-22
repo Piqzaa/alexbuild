@@ -96,10 +96,12 @@ export function initMobileAtlasScrub(hero, onFrameReady) {
     if (!image || desiredFrame === drawnFrame) return !!image;
     const slot = (desiredFrame % FRAMES_PER_SCENE) % FRAMES_PER_ATLAS;
     context.drawImage(image, 0, slot * HEIGHT, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
+    if (drawnFrame < 0) {
+      hero.classList.add('is-sequence-ready');
+      hero.classList.remove('is-sequence-failed');
+      loader?.setAttribute('aria-hidden', 'true');
+    }
     drawnFrame = desiredFrame;
-    hero.classList.add('is-sequence-ready');
-    hero.classList.remove('is-sequence-failed');
-    loader?.setAttribute('aria-hidden', 'true');
     return true;
   };
 

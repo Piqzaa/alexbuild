@@ -1,6 +1,6 @@
 ﻿import { prefersReducedMotion } from './utils.js';
 import { isBudgetMode, onPowerChange } from './power.js';
-import { initMobileAtlasScrub } from './mobile-atlas.js';
+import { initMobileAtlasScrub } from './mobile-atlas.js?v=20260922e';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const SEQUENCE_FRAMES = 75;
@@ -24,11 +24,86 @@ export function initHero() {
   const canAnimateJourney = !prefersReducedMotion();
   const canUsePointerDepth = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  if (canAnimateJourney) initScrollJourney(hero);
+  if (canAnimateJourney) {
+    if (window.matchMedia('(any-pointer: coarse) and (max-width: 700px) and (orientation: portrait)').matches) {
+      initMobileJourney(hero);
+    } else {
+      initScrollJourney(hero);
+    }
+  }
   if (canAnimateJourney && canUsePointerDepth) {
     initPointerDepth(hero);
     initArrivalAttraction(hero);
   }
+}
+
+function initMobileJourney(hero) {
+  const cards = [...hero.querySelectorAll('[data-method-card]')];
+  const cta = hero.querySelector('[data-journey-cta]');
+  let heroTop = 0;
+  let distance = 1;
+  let frame = 0;
+  let activeCard = -1;
+  let introGone = false;
+  let storyVisible = false;
+  let ctaVisible = false;
+
+  hero.classList.add('is-mobile-journey');
+  cta?.setAttribute('aria-hidden', 'true');
+  // Native scrolling remains in charge. The canvas only samples its current
+  // position; it never slows, snaps or scrolls the page programmatically.
+  const sequenceScrub = initMobileAtlasScrub(hero, requestUpdate);
+
+  const measure = () => {
+    heroTop = hero.getBoundingClientRect().top + window.scrollY;
+    distance = Math.max(hero.offsetHeight - window.innerHeight, 1);
+    requestUpdate();
+  };
+
+  const update = () => {
+    frame = 0;
+    const progress = clamp((window.scrollY - heroTop) / distance);
+    const sequenceProgress = clamp((progress - .22) / (.98 - .22));
+    sequenceScrub?.(sequenceProgress);
+
+    const nextIntroGone = progress > .18;
+    if (nextIntroGone !== introGone) {
+      introGone = nextIntroGone;
+      hero.classList.toggle('is-mobile-copy-gone', introGone);
+    }
+    const nextStoryVisible = progress > .25;
+    if (nextStoryVisible !== storyVisible) {
+      storyVisible = nextStoryVisible;
+      hero.classList.toggle('is-mobile-story-visible', storyVisible);
+    }
+    const nextCtaVisible = sequenceProgress >= .9;
+    if (nextCtaVisible !== ctaVisible) {
+      ctaVisible = nextCtaVisible;
+      hero.classList.toggle('is-mobile-cta-visible', ctaVisible);
+      cta?.setAttribute('aria-hidden', ctaVisible ? 'false' : 'true');
+    }
+
+    // Cards mark chapters without locking the scroll or animating their
+    // contents on every frame. Each stays on screen for about a viewport.
+    const nextCard = sequenceProgress >= .05 && sequenceProgress < .9
+      ? Math.min(cards.length - 1, Math.floor((sequenceProgress - .05) / .225))
+      : -1;
+    if (nextCard !== activeCard) {
+      cards[activeCard]?.classList.remove('is-current');
+      cards[activeCard]?.setAttribute('aria-hidden', 'true');
+      cards[nextCard]?.classList.add('is-current');
+      cards[nextCard]?.setAttribute('aria-hidden', 'false');
+      activeCard = nextCard;
+    }
+  };
+
+  function requestUpdate() {
+    if (!frame) frame = requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', measure, { passive: true });
+  measure();
 }
 
 function initPointerDepth(hero) {
@@ -90,22 +165,6 @@ function initScrollJourney(hero) {
   // progress .37, so its stop must come after that as well as its own fade.
   const storyStops = methodCards.map((_, index) => (index + .28) / methodCards.length + (index === 0 ? .07 : .02));
   storyStops.push(.98);
-  if (nativeTouchScroll) {
-    document.documentElement.classList.add('has-hero-snap');
-    // Native momentum stays intact; nearby story beats settle on their card.
-    storyStops.forEach((stop) => {
-      const marker = document.createElement('span');
-      marker.className = 'hero__snap-point';
-      marker.setAttribute('aria-hidden', 'true');
-      hero.append(marker);
-      const position = timelineStart + stop * (timelineEnd - timelineStart);
-      const placeMarker = () => {
-        marker.style.top = `${Math.max(0, hero.offsetHeight - window.innerHeight) * position}px`;
-      };
-      placeMarker();
-      window.addEventListener('resize', placeMarker, { passive: true });
-    });
-  }
   const readingPauseMs = 600;
   const wheelGestureGapMs = 500;
   const bufferWaitMs = 1400;

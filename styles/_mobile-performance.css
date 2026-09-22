@@ -19,8 +19,92 @@
 }
 
 @media (any-pointer: coarse) and (max-width: 700px) and (orientation: portrait) {
+  .hero.is-mobile-journey {
+    min-height: 700svh;
+  }
+
+  .nav__progress,
+  .hero__grid {
+    display: none;
+  }
+
   /* The poster stays visible while the first atlas decodes. */
   .hero__loader {
     display: none;
+  }
+
+  .hero.is-mobile-journey .hero__inner {
+    opacity: 1;
+    transition: opacity .2s linear, transform .2s ease;
+  }
+
+  .hero.is-mobile-journey.is-mobile-copy-gone .hero__inner {
+    opacity: 0;
+    transform: translate3d(0, -3vh, 0);
+    pointer-events: none;
+  }
+
+  .hero.is-mobile-journey .hero__launch {
+    transition: opacity .2s linear;
+  }
+
+  .hero.is-mobile-journey.is-mobile-copy-gone .hero__launch {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero.is-mobile-journey .hero__art::after {
+    transition: opacity .25s linear;
+  }
+
+  .hero.is-mobile-journey.is-mobile-copy-gone .hero__art::after {
+    opacity: .15;
+  }
+
+  .hero.is-mobile-journey .hero__arrival--method {
+    opacity: 0;
+    transform: none;
+    transition: opacity .2s linear;
+  }
+
+  .hero.is-mobile-journey.is-mobile-story-visible .hero__arrival--method {
+    opacity: 1;
+  }
+
+  .hero.is-mobile-journey .hero__arrival--method .method-card,
+  .hero.is-mobile-journey .hero__arrival--method .method-card:nth-child(even) {
+    opacity: 0;
+    visibility: hidden;
+    filter: none;
+    clip-path: none;
+    backdrop-filter: none;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .22);
+    transform: translate3d(0, 8px, 0);
+    transition: opacity .2s linear, transform .2s ease, visibility 0s .2s;
+  }
+
+  .hero.is-mobile-journey .hero__arrival--method .method-card.is-current,
+  .hero.is-mobile-journey .hero__arrival--method .method-card.is-current:nth-child(even) {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    transition: opacity .2s linear, transform .2s ease, visibility 0s;
+  }
+
+  .hero.is-mobile-journey .hero__journey-cta {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(-50%, calc(-50% + 8px), 0);
+    backdrop-filter: none;
+    pointer-events: none;
+    transition: opacity .2s linear, transform .2s ease, visibility 0s .2s;
+  }
+
+  .hero.is-mobile-journey.is-mobile-cta-visible .hero__journey-cta {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(-50%, -50%, 0);
+    pointer-events: auto;
+    transition: opacity .2s linear, transform .2s ease, visibility 0s;
   }
 }

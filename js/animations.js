@@ -1,6 +1,7 @@
 import { prefersReducedMotion } from './utils.js';
 
 export function initAnimations() {
+  const mobileTouch = matchMedia('(any-pointer: coarse) and (max-width: 700px)').matches;
   const reveals = document.querySelectorAll('.reveal');
   if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
     reveals.forEach((element) => element.classList.add('visible'));
@@ -32,9 +33,13 @@ export function initAnimations() {
       observer.observe(element);
     });
     requestAnimationFrame(revealVisibleItems);
-    addEventListener('scroll', revealVisibleItems, { passive: true });
+    if (!mobileTouch) addEventListener('scroll', revealVisibleItems, { passive: true });
     addEventListener('hashchange', () => requestAnimationFrame(revealVisibleItems), { passive: true });
   }
+
+  // IntersectionObserver handles mobile reveals. The tiny page progress line
+  // and method rule do not justify another layout read on every touch frame.
+  if (mobileTouch) return;
 
   const pageProgress = document.querySelector('[data-scroll-progress]');
   const method = document.querySelector('[data-method-track]');

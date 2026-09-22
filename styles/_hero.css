@@ -272,18 +272,6 @@
   .hero__arrival-left, .hero__arrival-right { grid-column: 1; }
 }
 
-@media (any-pointer: coarse) and (prefers-reduced-motion: no-preference) {
-  html.has-hero-snap { scroll-snap-type: y proximity; }
-  .hero__snap-point {
-    position: absolute;
-    left: 0;
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
-    scroll-snap-align: start;
-  }
-}
-
 @media (max-width: 560px) {
   .hero__arrival {
     align-content: end;

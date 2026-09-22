@@ -4,8 +4,8 @@
  */
 
 import { initNav } from './nav.js';
-import { initHero } from './hero.js?v=20260922d';
-import { initAnimations } from './animations.js';
+import { initHero } from './hero.js?v=20260922e';
+import { initAnimations } from './animations.js?v=20260922e';
 import { initAuditTool } from './audit-tool.js';
 import { initExperience } from './experience.js';
 import { initAmbientParticles } from './particles.js?v=20260922b';
