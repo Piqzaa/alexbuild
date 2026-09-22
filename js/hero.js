@@ -9,21 +9,10 @@ export function initHero() {
   if (!hero) return;
 
   const canAnimateJourney = !prefersReducedMotion();
-  const lightweightJourney = window.matchMedia('(any-pointer: coarse) and (max-width: 1024px)').matches;
   const canUsePointerDepth = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  if (lightweightJourney) {
-    hero.classList.add('is-lightweight-journey');
-    document.documentElement.classList.add('has-mobile-story');
-  }
-
-  if (canAnimateJourney && !lightweightJourney) initScrollJourney(hero);
-  if (lightweightJourney) {
-    hero.querySelectorAll('[data-method-card], [data-journey-cta]').forEach((element) => {
-      element.setAttribute('aria-hidden', 'false');
-    });
-  }
-  if (canAnimateJourney && !lightweightJourney && canUsePointerDepth) {
+  if (canAnimateJourney) initScrollJourney(hero);
+  if (canAnimateJourney && canUsePointerDepth) {
     initPointerDepth(hero);
     initArrivalAttraction(hero);
   }
@@ -411,24 +400,26 @@ function initImageSequenceScrub(hero, budget = { active: false }, onFrameReady =
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
+  const mobilePortrait = window.matchMedia('(any-pointer: coarse) and (max-width: 700px) and (orientation: portrait)').matches;
+  const framesPerScene = mobilePortrait ? 38 : SEQUENCE_FRAMES;
   const physicalWidth = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
   const physicalHeight = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
   const useHighResolution = !budget.active && physicalWidth >= 2200 && physicalHeight >= 1100;
   const renderWidth = Math.max(physicalWidth, physicalHeight * 16 / 9);
-  const FRAME_WIDTH = useHighResolution ? 2560 : budget.active || renderWidth <= 1280 ? 1280 : 1920;
-  const FRAME_HEIGHT = FRAME_WIDTH * 9 / 16;
+  const FRAME_WIDTH = mobilePortrait ? 405 : useHighResolution ? 2560 : budget.active || renderWidth <= 1280 ? 1280 : 1920;
+  const FRAME_HEIGHT = mobilePortrait ? 720 : FRAME_WIDTH * 9 / 16;
   const frameVariant = useHighResolution ? '-1440' : '';
-  const TOTAL_FRAMES = SEQUENCE_FRAMES * 2;
+  const TOTAL_FRAMES = framesPerScene * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
   // tighten the sequence without reloading the page.
-  const lookAhead = () => budget.active ? 10 : useHighResolution ? 6 : 12;
-  const lookBehind = () => budget.active ? 5 : useHighResolution ? 3 : 7;
+  const lookAhead = () => mobilePortrait ? 5 : budget.active ? 10 : useHighResolution ? 6 : 12;
+  const lookBehind = () => mobilePortrait ? 3 : budget.active ? 5 : useHighResolution ? 3 : 7;
   // Network requests need a wider survival window than decoded frames. On a
   // local server a frame resolves before the next paint; in production, the
   // previous implementation could abort it after only a few scroll ticks.
-  const retention = () => budget.active ? 12 : useHighResolution ? 8 : 16;
+  const retention = () => mobilePortrait ? 8 : budget.active ? 12 : useHighResolution ? 8 : 16;
   const maxConcurrent = () => budget.active || useHighResolution ? 2 : 3;
-  const decodeOptions = () => budget.active || FRAME_WIDTH === 1280
+  const decodeOptions = () => mobilePortrait ? undefined : budget.active || FRAME_WIDTH === 1280
     ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
     : undefined;
   const cache = new Map();
@@ -447,8 +438,9 @@ function initImageSequenceScrub(hero, budget = { active: false }, onFrameReady =
   canvas.height = FRAME_HEIGHT;
 
   const framePath = (flatFrame) => {
-    const scene = Math.floor(flatFrame / SEQUENCE_FRAMES) + 1;
-    const frame = flatFrame % SEQUENCE_FRAMES + 1;
+    const scene = Math.floor(flatFrame / framesPerScene) + 1;
+    const frame = flatFrame % framesPerScene + 1;
+    if (mobilePortrait) return `assets/hero-mobile-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp?v=20260922c`;
     return `assets/hero-tech-frames-${scene}${frameVariant}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai2`;
   };
 

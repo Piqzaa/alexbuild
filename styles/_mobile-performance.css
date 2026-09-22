@@ -1,0 +1,19 @@
+/* Keep the scroll-led hero, but avoid per-frame filters on touch devices. */
+@media (any-pointer: coarse) and (max-width: 1024px) {
+  .hero__grain,
+  .ambient-particles {
+    display: none;
+  }
+
+  .hero__arrival--method .method-card {
+    filter: none;
+    clip-path: none;
+    backdrop-filter: none;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .22);
+  }
+
+  .launch::after,
+  .service-marquee__track {
+    animation: none;
+  }
+}
