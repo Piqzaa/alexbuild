@@ -17,3 +17,10 @@
     animation: none;
   }
 }
+
+@media (any-pointer: coarse) and (max-width: 700px) and (orientation: portrait) {
+  /* The poster stays visible while the first atlas decodes. */
+  .hero__loader {
+    display: none;
+  }
+}

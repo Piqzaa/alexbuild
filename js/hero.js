@@ -1,8 +1,21 @@
 ﻿import { prefersReducedMotion } from './utils.js';
 import { isBudgetMode, onPowerChange } from './power.js';
+import { initMobileAtlasScrub } from './mobile-atlas.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const SEQUENCE_FRAMES = 75;
+const motionValues = new WeakMap();
+
+function setMotionValue(element, property, value) {
+  let values = motionValues.get(element);
+  if (!values) {
+    values = new Map();
+    motionValues.set(element, values);
+  }
+  if (values.get(property) === value) return;
+  values.set(property, value);
+  element.style.setProperty(property, value);
+}
 
 export function initHero() {
   const hero = document.querySelector('[data-hero]');
@@ -63,6 +76,7 @@ function initScrollJourney(hero) {
 
   const methodCards = [...hero.querySelectorAll('[data-method-card]')];
   const nativeTouchScroll = window.matchMedia('(any-pointer: coarse)').matches;
+  const mobilePortrait = window.matchMedia('(any-pointer: coarse) and (max-width: 700px) and (orientation: portrait)').matches;
   const journeyCta = hero.querySelector('[data-journey-cta]');
   const durations = videos.map(() => 0);
   let frame = null;
@@ -110,7 +124,9 @@ function initScrollJourney(hero) {
   const budget = { active: isBudgetMode() };
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = initImageSequenceScrub(hero, budget, () => requestUpdate());
+  const sequenceScrub = mobilePortrait
+    ? initMobileAtlasScrub(hero, () => requestUpdate())
+    : initImageSequenceScrub(hero, budget, () => requestUpdate());
   onPowerChange(() => {
     const next = isBudgetMode();
     if (next !== budget.active) {
@@ -166,21 +182,19 @@ function initScrollJourney(hero) {
       settleTimer = setTimeout(() => hero.classList.remove('is-scrubbing-fast'), 140);
     }
 
-    hero.style.setProperty('--hero-progress', progress.toFixed(4));
-    hero.dataset.progress = progress.toFixed(4);
-    hero.style.setProperty('--hero-beam-shift', `${(progress * 12).toFixed(2)}%`);
-    hero.style.setProperty('--hero-beam-opacity', Math.max(.35, .85 - progress * .5).toFixed(3));
-    hero.style.setProperty('--hero-copy-opacity', Math.max(0, 1 - progress * 5.4).toFixed(3));
-    hero.style.setProperty('--hero-copy-y', `${(progress * -10).toFixed(2)}vh`);
-    hero.style.setProperty('--hero-launch-opacity', Math.max(0, 1 - progress * 5.2).toFixed(3));
-    hero.style.setProperty('--hero-cue-opacity', Math.max(0, 1 - progress * 5).toFixed(3));
-    hero.style.setProperty('--hero-art-left', `${(30 * (1 - expansion)).toFixed(2)}%`);
-    hero.style.setProperty('--hero-art-clip', `${(12 * (1 - expansion)).toFixed(2)}%`);
-    hero.style.setProperty('--hero-overlay-opacity', Math.max(0, 1 - progress * 2.8).toFixed(3));
-    hero.style.setProperty('--hero-grid-opacity', Math.max(0, 1 - progress * 3).toFixed(3));
-    hero.style.setProperty('--hero-arrival-opacity', arrival.toFixed(3));
-    hero.style.setProperty('--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
-    hero.style.setProperty('--hero-fallback-opacity', fallback.toFixed(3));
+    setMotionValue(hero, '--hero-copy-opacity', Math.max(0, 1 - progress * 5.4).toFixed(3));
+    setMotionValue(hero, '--hero-copy-y', `${(progress * -10).toFixed(2)}vh`);
+    setMotionValue(hero, '--hero-launch-opacity', Math.max(0, 1 - progress * 5.2).toFixed(3));
+    setMotionValue(hero, '--hero-cue-opacity', Math.max(0, 1 - progress * 5).toFixed(3));
+    if (!mobilePortrait) {
+      setMotionValue(hero, '--hero-art-left', `${(30 * (1 - expansion)).toFixed(2)}%`);
+      setMotionValue(hero, '--hero-art-clip', `${(12 * (1 - expansion)).toFixed(2)}%`);
+    }
+    setMotionValue(hero, '--hero-overlay-opacity', Math.max(0, 1 - progress * 2.8).toFixed(3));
+    setMotionValue(hero, '--hero-grid-opacity', Math.max(0, 1 - progress * 3).toFixed(3));
+    setMotionValue(hero, '--hero-arrival-opacity', arrival.toFixed(3));
+    setMotionValue(hero, '--hero-arrival-y', `${((1 - arrival) * 4).toFixed(2)}vh`);
+    setMotionValue(hero, '--hero-fallback-opacity', fallback.toFixed(3));
     const segmentProgress = scrubProgress * Math.max(videos.length, 1);
     const activeIndex = Math.min(videos.length - 1, Math.floor(segmentProgress));
     videos.forEach((video, index) => video.classList.toggle('is-active', index === activeIndex));
@@ -209,21 +223,25 @@ function initScrollJourney(hero) {
         ? 1 - smoothStep(ctaProgress)
         : local > .88 ? 1 - smoothStep(clamp((local - .88) / .12)) : 1;
       const opacity = Math.min(fadeIn, fadeOut);
-      card.style.setProperty('--method-card-opacity', opacity.toFixed(3));
-      card.style.setProperty('--method-card-build', fadeIn.toFixed(3));
-      card.style.setProperty('--method-card-dissolve', (1 - fadeOut).toFixed(3));
-      card.style.setProperty('--method-card-scale', (0.94 + opacity * .06).toFixed(3));
-      card.style.setProperty('--method-card-y', `${((1 - fadeIn) * 2.5 - (1 - fadeOut) * 2.5).toFixed(2)}vh`);
-      card.style.setProperty('--method-card-blur', `${((1 - opacity) * 8).toFixed(2)}px`);
+      setMotionValue(card, '--method-card-opacity', opacity.toFixed(3));
+      setMotionValue(card, '--method-card-build', fadeIn.toFixed(3));
+      setMotionValue(card, '--method-card-dissolve', (1 - fadeOut).toFixed(3));
+      setMotionValue(card, '--method-card-scale', (0.94 + opacity * .06).toFixed(3));
+      setMotionValue(card, '--method-card-y', `${((1 - fadeIn) * 2.5 - (1 - fadeOut) * 2.5).toFixed(2)}vh`);
+      if (!mobilePortrait) setMotionValue(card, '--method-card-blur', `${((1 - opacity) * 8).toFixed(2)}px`);
       card.classList.toggle('is-current', opacity > .5);
-      card.style.visibility = opacity < .02 ? 'hidden' : 'visible';
-      card.setAttribute('aria-hidden', opacity < .35 ? 'true' : 'false');
+      const visibility = opacity < .02 ? 'hidden' : 'visible';
+      if (card.style.visibility !== visibility) card.style.visibility = visibility;
+      const hidden = opacity < .35 ? 'true' : 'false';
+      if (card.getAttribute('aria-hidden') !== hidden) card.setAttribute('aria-hidden', hidden);
     });
     if (journeyCta) {
-      journeyCta.style.setProperty('--journey-cta-opacity', ctaProgress.toFixed(3));
-      journeyCta.style.setProperty('--journey-cta-y', `${((1 - ctaProgress) * 1.5).toFixed(2)}vh`);
-      journeyCta.style.pointerEvents = ctaProgress > .55 ? 'auto' : 'none';
-      journeyCta.setAttribute('aria-hidden', ctaProgress < .35 ? 'true' : 'false');
+      setMotionValue(journeyCta, '--journey-cta-opacity', ctaProgress.toFixed(3));
+      setMotionValue(journeyCta, '--journey-cta-y', `${((1 - ctaProgress) * 1.5).toFixed(2)}vh`);
+      const pointerEvents = ctaProgress > .55 ? 'auto' : 'none';
+      if (journeyCta.style.pointerEvents !== pointerEvents) journeyCta.style.pointerEvents = pointerEvents;
+      const hidden = ctaProgress < .35 ? 'true' : 'false';
+      if (journeyCta.getAttribute('aria-hidden') !== hidden) journeyCta.setAttribute('aria-hidden', hidden);
     }
     frame = null;
     if (!nativeTouchScroll && !waitingForFrame && Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
@@ -400,26 +418,25 @@ function initImageSequenceScrub(hero, budget = { active: false }, onFrameReady =
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const mobilePortrait = window.matchMedia('(any-pointer: coarse) and (max-width: 700px) and (orientation: portrait)').matches;
-  const framesPerScene = mobilePortrait ? 38 : SEQUENCE_FRAMES;
+  const framesPerScene = SEQUENCE_FRAMES;
   const physicalWidth = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
   const physicalHeight = window.innerHeight * Math.min(window.devicePixelRatio || 1, 2);
   const useHighResolution = !budget.active && physicalWidth >= 2200 && physicalHeight >= 1100;
   const renderWidth = Math.max(physicalWidth, physicalHeight * 16 / 9);
-  const FRAME_WIDTH = mobilePortrait ? 405 : useHighResolution ? 2560 : budget.active || renderWidth <= 1280 ? 1280 : 1920;
-  const FRAME_HEIGHT = mobilePortrait ? 720 : FRAME_WIDTH * 9 / 16;
+  const FRAME_WIDTH = useHighResolution ? 2560 : budget.active || renderWidth <= 1280 ? 1280 : 1920;
+  const FRAME_HEIGHT = FRAME_WIDTH * 9 / 16;
   const frameVariant = useHighResolution ? '-1440' : '';
   const TOTAL_FRAMES = framesPerScene * 2;
   // These budgets are resolved dynamically so battery/data-saving changes can
   // tighten the sequence without reloading the page.
-  const lookAhead = () => mobilePortrait ? 5 : budget.active ? 10 : useHighResolution ? 6 : 12;
-  const lookBehind = () => mobilePortrait ? 3 : budget.active ? 5 : useHighResolution ? 3 : 7;
+  const lookAhead = () => budget.active ? 10 : useHighResolution ? 6 : 12;
+  const lookBehind = () => budget.active ? 5 : useHighResolution ? 3 : 7;
   // Network requests need a wider survival window than decoded frames. On a
   // local server a frame resolves before the next paint; in production, the
   // previous implementation could abort it after only a few scroll ticks.
-  const retention = () => mobilePortrait ? 8 : budget.active ? 12 : useHighResolution ? 8 : 16;
+  const retention = () => budget.active ? 12 : useHighResolution ? 8 : 16;
   const maxConcurrent = () => budget.active || useHighResolution ? 2 : 3;
-  const decodeOptions = () => mobilePortrait ? undefined : budget.active || FRAME_WIDTH === 1280
+  const decodeOptions = () => budget.active || FRAME_WIDTH === 1280
     ? { resizeWidth: 1280, resizeHeight: 720, resizeQuality: 'high' }
     : undefined;
   const cache = new Map();
@@ -440,7 +457,6 @@ function initImageSequenceScrub(hero, budget = { active: false }, onFrameReady =
   const framePath = (flatFrame) => {
     const scene = Math.floor(flatFrame / framesPerScene) + 1;
     const frame = flatFrame % framesPerScene + 1;
-    if (mobilePortrait) return `assets/hero-mobile-frames-${scene}/frame-${String(frame).padStart(4, '0')}.webp?v=20260922c`;
     return `assets/hero-tech-frames-${scene}${frameVariant}/frame-${String(frame).padStart(4, '0')}.webp?v=20260920-ai2`;
   };
 
