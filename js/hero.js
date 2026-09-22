@@ -1,4 +1,4 @@
-﻿import { prefersReducedMotion } from './utils.js';
+import { prefersReducedMotion } from './utils.js';
 import { isBudgetMode, onPowerChange } from './power.js';
 import { initMobileAtlasScrub } from './mobile-atlas.js?v=20260922e';
 
@@ -150,42 +150,20 @@ function initScrollJourney(hero) {
   if (!videos.length || sources.some((source) => !source)) return;
 
   const methodCards = [...hero.querySelectorAll('[data-method-card]')];
-  const nativeTouchScroll = window.matchMedia('(any-pointer: coarse)').matches;
-  const mobilePortrait = window.matchMedia('(any-pointer: coarse) and (max-width: 700px) and (orientation: portrait)').matches;
   const journeyCta = hero.querySelector('[data-journey-cta]');
   const durations = videos.map(() => 0);
   let frame = null;
-  let scrubTarget = 0;
   let scrubProgress = 0;
   let settleTimer = null;
   const timelineStart = .28;
   const timelineEnd = .965;
-  // The card reaches full opacity at (index + .12 + .16) / card count.
-  // The first card's parent arrival layer reaches full opacity at hero
-  // progress .37, so its stop must come after that as well as its own fade.
-  const storyStops = methodCards.map((_, index) => (index + .28) / methodCards.length + (index === 0 ? .07 : .02));
-  storyStops.push(.98);
-  const readingPauseMs = 600;
-  const wheelGestureGapMs = 500;
-  const bufferWaitMs = 1400;
-  let nextStop = 0;
-  let holdStartedAt = null;
-  let holdTouchGesture = 0;
-  let touchGesture = 0;
-  let lastWheelAt = -Infinity;
-  let lastScrollInputAt = -Infinity;
-  let lastScrollDirection = 0;
-  let exitStartedAt = 0;
-  let bypassStops = false;
   // Budget mode bounds every heavy cost instead: decode size, concurrency,
   // cache window and the full warm-ahead of frames. It engages on touch but
   // can also kick in mid-session on low battery or reduced data mode.
   const budget = { active: isBudgetMode() };
   // Scrub decoded local frames instead of seeking an MP4 on every wheel event.
   // This keeps reverse scrolling deterministic and prevents decoder contention.
-  const sequenceScrub = mobilePortrait
-    ? initMobileAtlasScrub(hero, () => requestUpdate())
-    : initImageSequenceScrub(hero, budget, () => requestUpdate());
+  const sequenceScrub = initImageSequenceScrub(hero, budget, () => requestUpdate());
   onPowerChange(() => {
     const next = isBudgetMode();
     if (next !== budget.active) {
@@ -205,36 +183,11 @@ function initScrollJourney(hero) {
     // Leave the hero copy alone first. The cinematic sequence only starts once
     // the title and CTA have cleared, then runs until the very end of the pin.
     const timelineProgress = clamp((progress - timelineStart) / (timelineEnd - timelineStart));
-    scrubTarget = timelineProgress;
-    const scrubDelta = scrubTarget - scrubProgress;
-    // Keep large wheel deltas sequential without easing the last frames down
-    // to a visibly choppy cadence. Small deltas follow the scroll directly.
-    const maxStep = 1 / (SEQUENCE_FRAMES * 2 - 1);
-    const nextProgress = nativeTouchScroll ? scrubTarget : scrubProgress + Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta), maxStep);
-    // Wait for the exact frame before advancing the cards or the playhead.
-    // The decoder wakes the loop as soon as that frame is available.
-    const waitingForFrame = sequenceScrub ? !sequenceScrub(nextProgress) : false;
-    if (nativeTouchScroll || !waitingForFrame) scrubProgress = nextProgress;
-    if (!nativeTouchScroll) {
-      if (bypassStops) {
-        if (progress < timelineStart) {
-          bypassStops = false;
-          nextStop = 0;
-        }
-      } else {
-        const stop = storyStops[nextStop];
-        if (stop !== undefined && holdStartedAt === null && scrubProgress >= stop - .00035 && scrubTarget >= stop - .00035) {
-          holdStartedAt = performance.now();
-          holdTouchGesture = touchGesture;
-        }
-        if (stop !== undefined && scrubProgress < stop - .02 && scrubTarget < stop - .02) holdStartedAt = null;
-        while (nextStop > 0 && scrubProgress < storyStops[nextStop - 1] - .02) {
-          nextStop -= 1;
-          holdStartedAt = null;
-          exitStartedAt = 0;
-        }
-      }
-    }
+    const scrubDelta = timelineProgress - scrubProgress;
+    // Follow native scrolling immediately. If an image has not decoded yet,
+    // the canvas catches up when it becomes available without holding input.
+    const waitingForFrame = sequenceScrub ? !sequenceScrub(timelineProgress) : false;
+    scrubProgress = timelineProgress;
     if (Math.abs(scrubDelta) > .012 || waitingForFrame) {
       hero.classList.add('is-scrubbing-fast');
       clearTimeout(settleTimer);
@@ -245,10 +198,8 @@ function initScrollJourney(hero) {
     setMotionValue(hero, '--hero-copy-y', `${(progress * -10).toFixed(2)}vh`);
     setMotionValue(hero, '--hero-launch-opacity', Math.max(0, 1 - progress * 5.2).toFixed(3));
     setMotionValue(hero, '--hero-cue-opacity', Math.max(0, 1 - progress * 5).toFixed(3));
-    if (!mobilePortrait) {
-      setMotionValue(hero, '--hero-art-left', `${(30 * (1 - expansion)).toFixed(2)}%`);
-      setMotionValue(hero, '--hero-art-clip', `${(12 * (1 - expansion)).toFixed(2)}%`);
-    }
+    setMotionValue(hero, '--hero-art-left', `${(30 * (1 - expansion)).toFixed(2)}%`);
+    setMotionValue(hero, '--hero-art-clip', `${(12 * (1 - expansion)).toFixed(2)}%`);
     setMotionValue(hero, '--hero-overlay-opacity', Math.max(0, 1 - progress * 2.8).toFixed(3));
     setMotionValue(hero, '--hero-grid-opacity', Math.max(0, 1 - progress * 3).toFixed(3));
     setMotionValue(hero, '--hero-arrival-opacity', arrival.toFixed(3));
@@ -287,7 +238,7 @@ function initScrollJourney(hero) {
       setMotionValue(card, '--method-card-dissolve', (1 - fadeOut).toFixed(3));
       setMotionValue(card, '--method-card-scale', (0.94 + opacity * .06).toFixed(3));
       setMotionValue(card, '--method-card-y', `${((1 - fadeIn) * 2.5 - (1 - fadeOut) * 2.5).toFixed(2)}vh`);
-      if (!mobilePortrait) setMotionValue(card, '--method-card-blur', `${((1 - opacity) * 8).toFixed(2)}px`);
+      setMotionValue(card, '--method-card-blur', `${((1 - opacity) * 8).toFixed(2)}px`);
       card.classList.toggle('is-current', opacity > .5);
       const visibility = opacity < .02 ? 'hidden' : 'visible';
       if (card.style.visibility !== visibility) card.style.visibility = visibility;
@@ -303,121 +254,11 @@ function initScrollJourney(hero) {
       if (journeyCta.getAttribute('aria-hidden') !== hidden) journeyCta.setAttribute('aria-hidden', hidden);
     }
     frame = null;
-    if (!nativeTouchScroll && !waitingForFrame && Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
   };
 
   const requestUpdate = () => {
     if (!frame) frame = requestAnimationFrame(update);
   };
-
-  // Keep the real scroll within a few frames of the image on screen, with a
-  // short reading stop at each card. A single gesture cannot cross two stops.
-  const scrollBounds = () => {
-    const heroTop = hero.getBoundingClientRect().top + window.scrollY;
-    const distance = Math.max(hero.offsetHeight - window.innerHeight, 1);
-    const start = heroTop + distance * timelineStart;
-    const end = heroTop + distance * timelineEnd;
-    const frameLead = 6 / (SEQUENCE_FRAMES * 2 - 1);
-    const stop = bypassStops ? 1 : storyStops[nextStop] ?? 1;
-    return {
-      start,
-      end,
-      min: start + clamp(scrubProgress - frameLead) * (end - start),
-      max: start + Math.min(clamp(scrubProgress + frameLead), stop) * (end - start),
-      stopAt: start + stop * (end - start),
-    };
-  };
-  const releaseStop = (source, event, now) => {
-    if (holdStartedAt === null || now - holdStartedAt < readingPauseMs) return false;
-    if (now - holdStartedAt < bufferWaitMs && sequenceScrub && !sequenceScrub.hasBufferedAhead(4)) return false;
-    if (source === 'wheel' && now - lastWheelAt < wheelGestureGapMs) return false;
-    if (source === 'touch' && touchGesture <= holdTouchGesture) return false;
-    if (source === 'key' && event.repeat) return false;
-    nextStop += 1;
-    holdStartedAt = null;
-    if (nextStop === storyStops.length) exitStartedAt = now;
-    return true;
-  };
-  const limitJourneyScroll = (event, deltaY, source) => {
-    if (nativeTouchScroll || !deltaY || hero.classList.contains('is-sequence-failed')) return;
-    const now = performance.now();
-    lastScrollInputAt = now;
-    lastScrollDirection = Math.sign(deltaY);
-    const { start, end, stopAt } = scrollBounds();
-    const current = window.scrollY;
-    const requested = current + deltaY;
-    if (deltaY > 0 && !bypassStops && nextStop < storyStops.length && requested > stopAt + 1) {
-      releaseStop(source, event, now);
-    }
-    if (source === 'wheel') lastWheelAt = now;
-    // Once the final CTA has had its pause, a stalled image decode must not
-    // hold visitors inside the hero indefinitely.
-    if (deltaY > 0 && exitStartedAt && now - exitStartedAt >= 1100) return;
-    const { min, max } = scrollBounds();
-    if (deltaY > 0 && scrubProgress >= 1 - .00035 && current >= end - 2) return;
-    if (deltaY < 0 && scrubProgress <= .00035 && current <= start + 2) return;
-    if (deltaY > 0 && current <= end && requested >= start && requested > max) {
-      event.preventDefault();
-      window.scrollTo({ top: Math.max(current, max), behavior: 'instant' });
-      requestUpdate();
-    } else if (deltaY < 0 && current >= start && requested <= end && requested < min) {
-      event.preventDefault();
-      window.scrollTo({ top: Math.min(current, min), behavior: 'instant' });
-      requestUpdate();
-    }
-  };
-  window.addEventListener('wheel', (event) => {
-    if (event.ctrlKey) return;
-    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-    limitJourneyScroll(event, event.deltaY * unit, 'wheel');
-  }, { passive: false });
-  let previousTouchY = null;
-  let touchDirection = 0;
-  let touchMomentumTimer = null;
-  if (!nativeTouchScroll) window.addEventListener('touchstart', (event) => {
-    clearTimeout(touchMomentumTimer);
-    touchDirection = 0;
-    touchGesture += 1;
-    previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : null;
-  }, { passive: true });
-  if (!nativeTouchScroll) window.addEventListener('touchmove', (event) => {
-    if (previousTouchY === null || event.touches.length !== 1) return;
-    const touchY = event.touches[0].clientY;
-    const deltaY = previousTouchY - touchY;
-    previousTouchY = touchY;
-    if (deltaY) touchDirection = Math.sign(deltaY);
-    limitJourneyScroll(event, deltaY, 'touch');
-  }, { passive: false });
-  const finishTouch = () => {
-    previousTouchY = null;
-    clearTimeout(touchMomentumTimer);
-    touchMomentumTimer = setTimeout(() => { touchDirection = 0; }, 2000);
-  };
-  if (!nativeTouchScroll) {
-    window.addEventListener('touchend', finishTouch, { passive: true });
-    window.addEventListener('touchcancel', finishTouch, { passive: true });
-  }
-  window.addEventListener('keydown', (event) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.target?.closest?.('input, textarea, select, [contenteditable]')) return;
-    const deltaY = event.key === 'ArrowDown' ? 40 : event.key === 'ArrowUp' ? -40
-      : event.key === 'PageDown' ? window.innerHeight * .9 : event.key === 'PageUp' ? -window.innerHeight * .9
-      : event.key === ' ' ? (event.shiftKey ? -window.innerHeight * .9 : window.innerHeight * .9) : 0;
-    if (deltaY) limitJourneyScroll(event, deltaY, 'key');
-  });
-  window.addEventListener('hashchange', () => {
-    bypassStops = true;
-    nextStop = storyStops.length;
-    holdStartedAt = null;
-    exitStartedAt = 0;
-    lastScrollDirection = 0;
-    touchDirection = 0;
-  });
-  window.addEventListener('click', (event) => {
-    if (event.target?.closest?.('a[href^="#"]')) {
-      lastScrollDirection = 0;
-      touchDirection = 0;
-    }
-  }, { capture: true });
 
   videos.forEach((video, index) => {
     video.addEventListener('loadedmetadata', () => {
@@ -446,23 +287,7 @@ function initScrollJourney(hero) {
   // Image sequence is the primary scrub path. MP4 remains a lightweight
   // fallback for environments where the sequence cannot be decoded.
   if (!sequenceScrub) videos.forEach((video, index) => loadMedia(video, sources[index]));
-  window.addEventListener('scroll', () => {
-    // Native momentum can continue after the last wheel or touch event, and
-    // browser key scrolling can travel farther than its nominal delta.
-    const recentInput = performance.now() - lastScrollInputAt < 1500;
-    const direction = touchDirection || (recentInput ? lastScrollDirection : 0);
-    const canExit = direction > 0 && exitStartedAt && performance.now() - exitStartedAt >= 1100;
-    if (!nativeTouchScroll && direction && !canExit && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
-      const { start, end, min, max } = scrollBounds();
-      const current = window.scrollY;
-      if (direction > 0 && scrubProgress < 1 - .00035 && current >= start && current > max) {
-        window.scrollTo({ top: max, behavior: 'instant' });
-      } else if (direction < 0 && scrubProgress > .00035 && current <= end && current < min) {
-        window.scrollTo({ top: min, behavior: 'instant' });
-      }
-    }
-    requestUpdate();
-  }, { passive: true });
+  window.addEventListener('scroll', requestUpdate, { passive: true });
   window.addEventListener('resize', requestUpdate, { passive: true });
   requestUpdate();
 }
