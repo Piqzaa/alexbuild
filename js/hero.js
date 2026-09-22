@@ -62,6 +62,7 @@ function initScrollJourney(hero) {
   if (!videos.length || sources.some((source) => !source)) return;
 
   const methodCards = [...hero.querySelectorAll('[data-method-card]')];
+  const nativeTouchScroll = window.matchMedia('(any-pointer: coarse)').matches;
   const journeyCta = hero.querySelector('[data-journey-cta]');
   const durations = videos.map(() => 0);
   let frame = null;
@@ -75,6 +76,22 @@ function initScrollJourney(hero) {
   // progress .37, so its stop must come after that as well as its own fade.
   const storyStops = methodCards.map((_, index) => (index + .28) / methodCards.length + (index === 0 ? .07 : .02));
   storyStops.push(.98);
+  if (nativeTouchScroll) {
+    document.documentElement.classList.add('has-hero-snap');
+    // Native momentum stays intact; nearby story beats settle on their card.
+    storyStops.forEach((stop) => {
+      const marker = document.createElement('span');
+      marker.className = 'hero__snap-point';
+      marker.setAttribute('aria-hidden', 'true');
+      hero.append(marker);
+      const position = timelineStart + stop * (timelineEnd - timelineStart);
+      const placeMarker = () => {
+        marker.style.top = `${Math.max(0, hero.offsetHeight - window.innerHeight) * position}px`;
+      };
+      placeMarker();
+      window.addEventListener('resize', placeMarker, { passive: true });
+    });
+  }
   const readingPauseMs = 600;
   const wheelGestureGapMs = 500;
   const bufferWaitMs = 1400;
@@ -118,27 +135,29 @@ function initScrollJourney(hero) {
     // Keep large wheel deltas sequential without easing the last frames down
     // to a visibly choppy cadence. Small deltas follow the scroll directly.
     const maxStep = 1 / (SEQUENCE_FRAMES * 2 - 1);
-    const nextProgress = scrubProgress + Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta), maxStep);
+    const nextProgress = nativeTouchScroll ? scrubTarget : scrubProgress + Math.sign(scrubDelta) * Math.min(Math.abs(scrubDelta), maxStep);
     // Wait for the exact frame before advancing the cards or the playhead.
     // The decoder wakes the loop as soon as that frame is available.
     const waitingForFrame = sequenceScrub ? !sequenceScrub(nextProgress) : false;
-    if (!waitingForFrame) scrubProgress = nextProgress;
-    if (bypassStops) {
-      if (progress < timelineStart) {
-        bypassStops = false;
-        nextStop = 0;
-      }
-    } else {
-      const stop = storyStops[nextStop];
-      if (stop !== undefined && holdStartedAt === null && scrubProgress >= stop - .00035 && scrubTarget >= stop - .00035) {
-        holdStartedAt = performance.now();
-        holdTouchGesture = touchGesture;
-      }
-      if (stop !== undefined && scrubProgress < stop - .02 && scrubTarget < stop - .02) holdStartedAt = null;
-      while (nextStop > 0 && scrubProgress < storyStops[nextStop - 1] - .02) {
-        nextStop -= 1;
-        holdStartedAt = null;
-        exitStartedAt = 0;
+    if (nativeTouchScroll || !waitingForFrame) scrubProgress = nextProgress;
+    if (!nativeTouchScroll) {
+      if (bypassStops) {
+        if (progress < timelineStart) {
+          bypassStops = false;
+          nextStop = 0;
+        }
+      } else {
+        const stop = storyStops[nextStop];
+        if (stop !== undefined && holdStartedAt === null && scrubProgress >= stop - .00035 && scrubTarget >= stop - .00035) {
+          holdStartedAt = performance.now();
+          holdTouchGesture = touchGesture;
+        }
+        if (stop !== undefined && scrubProgress < stop - .02 && scrubTarget < stop - .02) holdStartedAt = null;
+        while (nextStop > 0 && scrubProgress < storyStops[nextStop - 1] - .02) {
+          nextStop -= 1;
+          holdStartedAt = null;
+          exitStartedAt = 0;
+        }
       }
     }
     if (Math.abs(scrubDelta) > .012 || waitingForFrame) {
@@ -207,7 +226,7 @@ function initScrollJourney(hero) {
       journeyCta.setAttribute('aria-hidden', ctaProgress < .35 ? 'true' : 'false');
     }
     frame = null;
-    if (!waitingForFrame && Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
+    if (!nativeTouchScroll && !waitingForFrame && Math.abs(scrubTarget - scrubProgress) > .00035) requestUpdate();
   };
 
   const requestUpdate = () => {
@@ -243,7 +262,7 @@ function initScrollJourney(hero) {
     return true;
   };
   const limitJourneyScroll = (event, deltaY, source) => {
-    if (!deltaY || hero.classList.contains('is-sequence-failed')) return;
+    if (nativeTouchScroll || !deltaY || hero.classList.contains('is-sequence-failed')) return;
     const now = performance.now();
     lastScrollInputAt = now;
     lastScrollDirection = Math.sign(deltaY);
@@ -278,13 +297,13 @@ function initScrollJourney(hero) {
   let previousTouchY = null;
   let touchDirection = 0;
   let touchMomentumTimer = null;
-  window.addEventListener('touchstart', (event) => {
+  if (!nativeTouchScroll) window.addEventListener('touchstart', (event) => {
     clearTimeout(touchMomentumTimer);
     touchDirection = 0;
     touchGesture += 1;
     previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : null;
   }, { passive: true });
-  window.addEventListener('touchmove', (event) => {
+  if (!nativeTouchScroll) window.addEventListener('touchmove', (event) => {
     if (previousTouchY === null || event.touches.length !== 1) return;
     const touchY = event.touches[0].clientY;
     const deltaY = previousTouchY - touchY;
@@ -297,8 +316,10 @@ function initScrollJourney(hero) {
     clearTimeout(touchMomentumTimer);
     touchMomentumTimer = setTimeout(() => { touchDirection = 0; }, 2000);
   };
-  window.addEventListener('touchend', finishTouch, { passive: true });
-  window.addEventListener('touchcancel', finishTouch, { passive: true });
+  if (!nativeTouchScroll) {
+    window.addEventListener('touchend', finishTouch, { passive: true });
+    window.addEventListener('touchcancel', finishTouch, { passive: true });
+  }
   window.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.target?.closest?.('input, textarea, select, [contenteditable]')) return;
     const deltaY = event.key === 'ArrowDown' ? 40 : event.key === 'ArrowUp' ? -40
@@ -354,7 +375,7 @@ function initScrollJourney(hero) {
     const recentInput = performance.now() - lastScrollInputAt < 1500;
     const direction = touchDirection || (recentInput ? lastScrollDirection : 0);
     const canExit = direction > 0 && exitStartedAt && performance.now() - exitStartedAt >= 1100;
-    if (direction && !canExit && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
+    if (!nativeTouchScroll && direction && !canExit && !bypassStops && !hero.classList.contains('is-sequence-failed')) {
       const { start, end, min, max } = scrollBounds();
       const current = window.scrollY;
       if (direction > 0 && scrubProgress < 1 - .00035 && current >= start && current > max) {
