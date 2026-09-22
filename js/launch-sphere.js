@@ -3,6 +3,8 @@
 export function initLaunchSphere() {
   const shell = document.querySelector('.launch__sphere-shell');
   if (!shell) return;
+  // Keep the CSS medal on touch devices; WebGL costs too much in low power mode.
+  if (matchMedia('(any-pointer: coarse) and (max-width: 1024px)').matches) return;
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let observer = null;
   let activeDispose = null;

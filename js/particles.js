@@ -6,6 +6,7 @@ const DARK_ZONE_SELECTOR = '.hero, .work, .method, .contact, .footer';
 export function initAmbientParticles() {
   const canvas = document.querySelector('[data-ambient-particles]');
   if (!canvas) return;
+  if (matchMedia('(any-pointer: coarse) and (max-width: 1024px)').matches) return;
 
   const context = canvas.getContext('2d', { alpha: true });
   const zones = [...document.querySelectorAll(DARK_ZONE_SELECTOR)];

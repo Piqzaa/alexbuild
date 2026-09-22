@@ -9,10 +9,21 @@ export function initHero() {
   if (!hero) return;
 
   const canAnimateJourney = !prefersReducedMotion();
+  const lightweightJourney = window.matchMedia('(any-pointer: coarse) and (max-width: 1024px)').matches;
   const canUsePointerDepth = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  if (canAnimateJourney) initScrollJourney(hero);
-  if (canAnimateJourney && canUsePointerDepth) {
+  if (lightweightJourney) {
+    hero.classList.add('is-lightweight-journey');
+    document.documentElement.classList.add('has-mobile-story');
+  }
+
+  if (canAnimateJourney && !lightweightJourney) initScrollJourney(hero);
+  if (lightweightJourney) {
+    hero.querySelectorAll('[data-method-card], [data-journey-cta]').forEach((element) => {
+      element.setAttribute('aria-hidden', 'false');
+    });
+  }
+  if (canAnimateJourney && !lightweightJourney && canUsePointerDepth) {
     initPointerDepth(hero);
     initArrivalAttraction(hero);
   }
