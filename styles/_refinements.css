@@ -614,8 +614,8 @@
   .launch__chapter{top:5.25rem;right:1rem;left:1rem;justify-content:center;text-align:center}
   .launch__headline{position:static;display:block;order:1;margin:.8rem 0 0;font-size:clamp(3.5rem,15.5vw,4.6rem);line-height:.82;text-align:center}
   .launch__headline span,.launch__headline strong{display:block;text-align:center}
-  .launch__tagline{order:2;margin-top:1rem;font-size:clamp(2.25rem,11vw,3rem);line-height:.92}
-  .launch--manifesto .launch__playground{order:3;width:min(82vw,310px);margin-top:-.2rem}
+  .launch--manifesto .launch__playground{order:2;width:min(82vw,310px);margin-top:-.2rem}
+  .launch__tagline{order:3;margin-top:1rem;font-size:clamp(2.25rem,11vw,3rem);line-height:.92}
   .launch__manifesto-copy{position:static;order:4;display:grid;width:100%;grid-template-columns:1fr;row-gap:0;margin-top:.8rem;padding-inline:0;text-align:center}
   .launch__manifesto-copy p{margin-inline:auto}
   .launch__manifesto-copy .btn{width:min(100%,330px);margin-top:3.5rem;justify-self:center}
