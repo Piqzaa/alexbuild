@@ -16,7 +16,7 @@
   --hero-arrival-opacity: 0;
   --hero-arrival-y: 4vh;
   --hero-fallback-opacity: 0;
-  min-height: 620svh;
+  min-height: 420svh;
   padding: 0;
   background: var(--ink);
 }
@@ -197,7 +197,7 @@
 @keyframes hero-scroll-cue { 50%, 100% { transform: translateX(100%); } }
 
 @media (max-width: 900px) {
-  .hero { min-height: 560svh; }
+  .hero { min-height: 400svh; }
   .hero__stage { position: sticky; display: flex; height: 100svh; min-height: 0; padding: 0; overflow: hidden; }
   .hero__art { inset: 0; height: 100%; clip-path: none; }
   .hero__art::after { background: linear-gradient(0deg, var(--ink) 0%, rgba(18, 17, 20, .25) 55%, rgba(18, 17, 20, .18)), linear-gradient(90deg, var(--ink), transparent 50%); }
@@ -216,7 +216,7 @@
 }
 
 @media (max-width: 560px) {
-  .hero { min-height: 600svh; }
+  .hero { min-height: 430svh; }
   .hero__art, .hero__grid, .hero__beam { height: 100%; }
   .hero__inner { min-height: 100svh; justify-content: center; padding: 7.4rem var(--pad) max(3rem, calc(env(safe-area-inset-bottom) + 2.5rem)); }
   .hero__meta { margin-bottom: 1.15rem; font-size: .7rem; }
