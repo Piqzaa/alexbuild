@@ -101,32 +101,52 @@ function interfaceArtwork(onReady) {
   texture.colorSpace = T.SRGBColorSpace;
   let disposed = false;
   function draw(photo) {
-    ctx.fillStyle = '#e9e5dc'; ctx.fillRect(0, 0, 1536, 960);
-    ctx.fillStyle = '#222720'; ctx.fillRect(0, 0, 1536, 94);
-    ctx.fillStyle = '#e9e5dc'; ctx.font = '28px Georgia'; ctx.fillText('M / MAISON', 55, 59);
-    ctx.font = '15px Arial'; ctx.fillText('L’ATELIER', 1010, 55); ctx.fillText('PROJETS', 1162, 55); ctx.fillText('CONTACT ↗', 1330, 55);
-    ctx.fillStyle = '#34392e'; ctx.font = '15px Arial'; ctx.fillText('ARCHITECTURE & INTÉRIEURS', 58, 163);
-    ctx.font = '112px Georgia'; ctx.fillText('Habiter', 52, 326); ctx.fillText('autrement.', 52, 443);
-    ctx.font = '21px Arial'; ctx.fillStyle = '#65665c'; ctx.fillText('Des lieux pensés pour vivre.', 59, 531); ctx.fillText('Des matières faites pour durer.', 59, 564);
-    ctx.fillStyle = '#34392e'; ctx.fillRect(58, 627, 306, 64);
-    ctx.fillStyle = '#f3eee3'; ctx.font = '18px Arial'; ctx.fillText('DÉCOUVRIR L’ATELIER   ↗', 82, 668);
-    ctx.fillStyle = '#a19785'; ctx.fillRect(774, 128, 716, 637);
+    // Fictional restaurant concept; large type and food photography keep
+    // its identity readable throughout the assembly of the 3D screen.
+    ctx.fillStyle = '#41372c'; ctx.fillRect(0, 0, 1536, 960);
     if (photo) {
-      ctx.save(); ctx.beginPath(); ctx.rect(774, 128, 716, 637); ctx.clip();
-      const scale = Math.max(716 / photo.width, 637 / photo.height);
-      ctx.drawImage(photo, 774 + (716 - photo.width * scale) * .7, 128, photo.width * scale, photo.height * scale);
-      ctx.restore();
+      const scale = Math.max(1536 / photo.width, 772 / photo.height);
+      ctx.drawImage(photo, (1536-photo.width*scale)/2, (772-photo.height*scale)/2, photo.width*scale, photo.height*scale);
     }
-    ctx.fillStyle = '#fff4dd'; ctx.font = '14px Arial'; ctx.fillText('01 / LA MATIÈRE, EN LUMIÈRE', 803, 730);
-    ctx.strokeStyle = '#b8b5a8'; ctx.beginPath(); ctx.moveTo(58, 823); ctx.lineTo(1480, 823); ctx.stroke();
-    ctx.fillStyle = '#34392e'; ctx.font = '48px Georgia'; ctx.fillText('L’essentiel, à sa juste place.', 58, 911);
-    ctx.font = '15px Arial'; ctx.fillText('EXPLORER LES PROJETS   ↗', 1210, 901);
+    const shade=ctx.createLinearGradient(0,0,1536,300);
+    shade.addColorStop(0,'rgba(22,15,11,.78)'); shade.addColorStop(.5,'rgba(22,15,11,.32)'); shade.addColorStop(1,'rgba(22,15,11,.03)');
+    ctx.fillStyle=shade; ctx.fillRect(0,0,1536,772);
+    const headerShade=ctx.createLinearGradient(0,0,0,145);
+    headerShade.addColorStop(0,'rgba(17,19,16,.48)'); headerShade.addColorStop(1,'rgba(17,19,16,0)');
+    ctx.fillStyle=headerShade; ctx.fillRect(0,0,1536,145);
+    ctx.fillStyle='#f5f0e5'; ctx.font='44px Georgia'; ctx.fillText('SILLAGE',64,76);
+    ctx.font='15px Arial'; ctx.fillText('RESTAURANT · CUISINE DE SAISON',310,70);
+    ctx.fillText('LA MAISON',975,70); ctx.fillText('LA CARTE',1130,70);
+    ctx.strokeStyle='rgba(245,240,229,.55)'; ctx.lineWidth=1;
+    ctx.fillStyle='#e4c6a0'; ctx.fillRect(1285,35,187,55);
+    ctx.fillStyle='#302217'; ctx.fillText('RÉSERVER  ↗',1320,69);
+    ctx.fillStyle='#f5f0e5';
+    ctx.beginPath(); ctx.moveTo(64,112); ctx.lineTo(1472,112); ctx.stroke();
+    ctx.font='16px Arial'; ctx.fillText('LE PRODUIT. LE GESTE. L’ÉMOTION.',76,260);
+    ctx.font='112px Georgia'; ctx.fillText('Le goût',70,371);
+    ctx.font='italic 108px Georgia'; ctx.fillText('de l’instant.',70,477);
+    ctx.font='20px Arial'; ctx.fillText('Une cuisine vivante. Un moment à savourer.',76,535);
+    ctx.fillStyle='#e4c6a0'; ctx.fillRect(76,580,262,58);
+    ctx.fillStyle='#302217'; ctx.font='15px Arial'; ctx.fillText('RÉSERVER UNE TABLE  ↗',98,616);
+    ctx.fillStyle='#f5f0e5'; ctx.font='15px Arial'; ctx.fillText('DÉCOUVRIR LA CARTE',378,616);
+    ctx.strokeStyle='rgba(245,240,229,.65)'; ctx.beginPath();ctx.moveTo(378,628);ctx.lineTo(558,628);ctx.stroke();
+    ctx.fillStyle='#f0ede4'; ctx.fillRect(0,772,1536,188);
+    ctx.fillStyle='#463429'; ctx.font='13px Arial'; ctx.fillText('À LA TABLE DE SILLAGE',70,819);
+    ctx.font='50px Georgia'; ctx.fillText('La saison donne le ton.',65,901);
+    ctx.fillStyle='#67695f'; ctx.font='18px Arial';
+    ctx.fillText('Des produits choisis. Des saveurs franches.',728,837);
+    ctx.fillText('Le plaisir de prendre son temps.',728,868);
+    ctx.fillStyle='#463429'; ctx.font='14px Arial'; ctx.fillText('ENTRER DANS LA MAISON  ↗',729,918);
+    ctx.strokeStyle='#a7a99b'; ctx.beginPath(); ctx.moveTo(680,811); ctx.lineTo(680,923); ctx.stroke();
+    ctx.fillStyle='#463429'; ctx.fillRect(1292,805,180,122);
+    ctx.fillStyle='#f0ede4'; ctx.font='italic 39px Georgia'; ctx.fillText('S.',1360,873);
+    ctx.font='10px Arial'; ctx.fillText('RESTAURANT SILLAGE',1330,906);
     texture.needsUpdate = true;
   }
   draw();
   const photo = new Image();
   photo.onload = () => { if (!disposed) { draw(photo); onReady(); } };
-  photo.src = 'assets/atelier-gallery.jpg';
+  photo.src = 'assets/restaurant-sillage.webp';
   return { texture, dispose() { disposed = true; photo.onload = null; texture.dispose(); } };
 }
 
@@ -180,7 +200,7 @@ export function createAtelier(container, onReady) {
   const artwork = interfaceArtwork(onReady);
   const finishedGeometry = new T.PlaneGeometry(8.4, 5.25);
   geometries.add(finishedGeometry);
-  const finishedMaterial = new T.MeshBasicMaterial({ map:artwork.texture });
+  const finishedMaterial = new T.MeshBasicMaterial({ map:artwork.texture, toneMapped:false });
   materials.add(finishedMaterial);
   const finished = new T.Mesh(finishedGeometry, finishedMaterial);
   finished.position.z = .135;
@@ -197,7 +217,7 @@ export function createAtelier(container, onReady) {
     geometries.add(plane);
     const uv = plane.attributes.uv;
     for (let i = 0; i < uv.count; i++) uv.setXY(i, (col + uv.getX(i)) / 3, (1 - row + uv.getY(i)) / 2);
-    const material = new T.MeshBasicMaterial({ map:artwork.texture }); materials.add(material);
+    const material = new T.MeshBasicMaterial({ map:artwork.texture, toneMapped:false }); materials.add(material);
     const face = new T.Mesh(plane, material); face.position.z = .12; group.add(face);
     group.userData = { x:(col - 1) * tileW, y:(.5 - row) * tileH, row, col };
     sculpture.add(group); tiles.push(group);
@@ -233,9 +253,9 @@ export function createAtelier(container, onReady) {
     camera.fov = pose[7];
     camera.updateProjectionMatrix();
 
-    gateway.position.set(mix(mobile ? 0 : 4.5, 0, open)+pointer.x*.16*openingWeight, mix(mobile ? mix(-4.1,-3.7,compactHeight) : 0.3, 0, open)+(Math.sin(drift*.8)*.18-pointer.y*.09)*openingWeight, 0);
+    gateway.position.set(mix(mobile ? 0 : 4.5, 0, open)+pointer.x*.16*openingWeight, mix(mobile ? 0 : 0.3, 0, open)+(Math.sin(drift*.8)*.18-pointer.y*.09)*openingWeight, 0);
     gateway.rotation.set(mix(0.22,0,open)+(interaction.pitch*Math.PI/180+pointer.y*.16)*openingWeight, mix(-0.62,0,open)+(interaction.yaw*Math.PI/180+pointer.x*.2)*openingWeight, mix(-.16,0,open)+Math.sin(drift*.38)*.035*openingWeight);
-    gateway.scale.setScalar(mix(mobile ? mix(.52,.6,compactHeight) : 1, 1, open));
+    gateway.scale.setScalar(mix(mobile ? .78 : 1, 1, open));
     gateway.visible = true;
     optics.update(open,drift,openingWeight);
 

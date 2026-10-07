@@ -7,12 +7,14 @@ export function initHero() {
   if(!hero) return;
   const stage=hero.querySelector('.atelier__stage');
   const intro=hero.querySelector('[data-atelier-intro]');
+  const footer=hero.querySelector('.atelier__footer');
   const chapters=[...hero.querySelectorAll('[data-atelier-chapter]')];
   const index=hero.querySelector('[data-atelier-index]');
   const slider=hero.querySelector('[data-atelier-interaction]');
   const arrival=hero.querySelector('[data-arrival-image]');
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   const coarse=matchMedia('(pointer: coarse)');
+  const mobile=matchMedia('(max-width: 600px)');
   let scene, pending=0, paintFrame=0, top=0, distance=1, progress=0;
   let visible=true, generation=0, arrivalRequested=false;
   let dirty=true, lastPaint=0, lastTick=0, idleTime=0;
@@ -60,7 +62,8 @@ export function initHero() {
     if(document.hidden || !visible) return;
     progress=motion.matches ? 0 : clamp((scrollY-top)/distance);
     if(progress>.12) loadArrival();
-    const introOpacity=1-ease(progress/.17);
+    // Reveal the sculpture within the first swipe, before entering the journey.
+    const introOpacity=1-ease(progress/(mobile.matches ? .09 : .17));
     const immersion=ease((progress-.12)/.18)*(1-ease((progress-.7)/.18));
     hero.style.setProperty('--intro',introOpacity.toFixed(4));
     hero.style.setProperty('--intro-y',`${-45*ease(progress/.2)}px`);
@@ -71,6 +74,8 @@ export function initHero() {
     hero.style.setProperty('--progress',progress.toFixed(4));
     intro.inert=introOpacity<.1;
     intro.setAttribute('aria-hidden',String(introOpacity<.1));
+    footer.inert=mobile.matches && introOpacity<.1;
+    footer.setAttribute('aria-hidden',String(footer.inert));
     const starts=[.16,.62,.85], ends=[.31,.79,1.1];
     chapters.forEach((chapter,i)=>{
       const enter=ease((progress-starts[i])/.065), leave=ease((progress-ends[i])/.05);
@@ -101,7 +106,7 @@ export function initHero() {
     const token=++generation;
     if(motion.matches) return;
     try {
-      const {createAtelier}=await import('./hero-scene.js?v=20261007c');
+      const {createAtelier}=await import('./hero-scene.js?v=20261007i');
       if(motion.matches || token!==generation) return;
       scene=createAtelier(hero.querySelector('[data-atelier-canvas]'),requestPaint);
       hero.classList.add('has-scene'); measure();

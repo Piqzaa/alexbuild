@@ -4,7 +4,7 @@
  */
 
 import { initNav } from './nav.js';
-import { initHero } from './atelier.js?v=20261007d';
+import { initHero } from './atelier.js?v=20261007i';
 import { initAnimations } from './animations.js?v=20260922e';
 import { initAuditTool } from './audit-tool.js';
 import { initExperience } from './experience.js';
