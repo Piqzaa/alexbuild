@@ -3,8 +3,6 @@
 export function initLaunchSphere() {
   const shell = document.querySelector('.launch__sphere-shell');
   if (!shell) return;
-  // Keep the CSS medal on touch devices; WebGL costs too much in low power mode.
-  if (matchMedia('(any-pointer: coarse) and (max-width: 1024px)').matches) return;
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let observer = null;
   let activeDispose = null;
@@ -89,7 +87,7 @@ function createMedal(T, shell) {
   const draw = () => { medal.rotation.set(.08, angle, -.06); renderer.render(scene, camera); };
   const tick = now => {
     // A decorative scene does not need 60 renders per second on a phone.
-    if (!compact || now - previous >= 32) {
+    if (now - previous >= 1000 / (compact ? 24 : 30)) {
       angle += Math.min((now - previous) / 1000, .05) * Math.PI / 7;
       previous = now;
       draw();

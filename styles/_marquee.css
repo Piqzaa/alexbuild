@@ -1,0 +1,14 @@
+.service-marquee {
+  position: relative;
+  z-index: 20;
+  overflow: hidden;
+  padding: .95rem 0;
+  color: #c9c2bc;
+  background: #0d0c0e;
+  border-top: 1px solid #39343a;
+  border-bottom: 1px solid #39343a;
+}
+
+.service-marquee__track { display: flex; width: max-content; will-change: transform; }
+.service-marquee__group { display: flex; min-width: 100vw; flex: none; align-items: center; justify-content: space-around; gap: 1.5rem; padding-right: 1.5rem; font-size: .68rem; white-space: nowrap; }
+.service-marquee__group i { width: 3px; height: 3px; flex: none; background: var(--gold); border-radius: 50%; }

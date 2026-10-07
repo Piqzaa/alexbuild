@@ -6,7 +6,7 @@
 @import url('_variables.css');
 @import url('_base.css');
 @import url('_nav.css');
-@import url('_hero.css?v=20260929a');
+@import url('_marquee.css');
 @import url('_particles.css');
 @import url('_services.css?v=20260929b');
 @import url('_automation.css?v=20260929a');
@@ -17,5 +17,6 @@
 @import url('_footer.css');
 @import url('_legal.css');
 @import url('_animations.css');
-@import url('_refinements.css?v=20260930b');
-@import url('_mobile-performance.css?v=20260929a');
+@import url('_refinements.css?v=20261006a');
+@import url('_mobile-performance.css?v=20261006a');
+@import url('_atelier.css?v=20261007e');
