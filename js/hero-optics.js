@@ -2,14 +2,14 @@ import * as T from '../assets/vendor/three/three.module.min.js';
 
 // A fabricated optical assembly: bevels, recessed inserts and shared instanced details.
 export function createOptics({metal,darkMetal,gold,geometries,materials,textures}) {
-  const body=new T.Group(), rotors=[], satellites=[];
+  const body=new T.Group(), rotors=[], satellites=[], instances=[];
   const own=g=>{geometries.add(g);return g;};
   const material=settings=>{const m=new T.MeshStandardMaterial(settings);materials.add(m);return m;};
   const titanium=material({color:0x8e999e,metalness:.93,roughness:.27});
   const carbon=material({color:0x151c20,metalness:.65,roughness:.34});
   const ceramic=material({color:0xe2e7e5,metalness:.4,roughness:.25});
   const light=new T.MeshBasicMaterial({color:0xcfe3df});materials.add(light);
-  const bevel={depth:.2,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:3,curveSegments:64,steps:1};
+  const bevel={depth:.2,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:3,curveSegments:32,steps:1};
   function annulus(outer,inner,depth,mat,z,parent=body) {
     const shape=new T.Shape();shape.absarc(0,0,outer,0,Math.PI*2,false);
     const hole=new T.Path();hole.absarc(0,0,inner,0,Math.PI*2,true);shape.holes.push(hole);
@@ -17,11 +17,12 @@ export function createOptics({metal,darkMetal,gold,geometries,materials,textures
     mesh.position.z=z;parent.add(mesh);return mesh;
   }
   function rail(radius,tube,mat,z,parent=body,arc=Math.PI*2) {
-    const mesh=new T.Mesh(own(new T.TorusGeometry(radius,tube,8,144,arc)),mat);
+    const mesh=new T.Mesh(own(new T.TorusGeometry(radius,tube,8,96,arc)),mat);
     mesh.position.z=z;parent.add(mesh);return mesh;
   }
   function radial(geometry,mat,count,radius,z,offset=0,parent=body) {
     const mesh=new T.InstancedMesh(own(geometry),mat,count), dummy=new T.Object3D();
+    instances.push(mesh);
     for(let i=0;i<count;i++) {
       const a=offset+i/count*Math.PI*2;
       dummy.position.set(Math.cos(a)*radius,Math.sin(a)*radius,z);
@@ -50,8 +51,8 @@ export function createOptics({metal,darkMetal,gold,geometries,materials,textures
   radial(new T.CircleGeometry(.018,6),carbon,180,3.09,.23,.017);
   annulus(3.15,2.94,.035,titanium,.145);
 
-  const engravings=document.createElement('canvas');engravings.width=2048;engravings.height=2048;
-  const c=engravings.getContext('2d');c.translate(1024,1024);
+  const engravings=document.createElement('canvas');engravings.width=1024;engravings.height=1024;
+  const c=engravings.getContext('2d');c.scale(.5,.5);c.translate(1024,1024);
   for(let i=0;i<180;i++) {
     c.save();c.rotate(i/180*Math.PI*2);c.strokeStyle=i%15===0?'#edf0ec':'#8a9da5';c.lineWidth=i%15===0?3:1;
     c.beginPath();c.moveTo(0,-925);c.lineTo(0,i%15===0?-897:-914);c.stroke();c.restore();
@@ -82,6 +83,7 @@ export function createOptics({metal,darkMetal,gold,geometries,materials,textures
   for(let layer=0;layer<2;layer++) {
     const rotor=new T.Group();rotor.position.z=-.12-layer*.48;body.add(rotor);rotors.push(rotor);
     const mesh=new T.InstancedMesh(bladeGeo,layer?darkMetal:metal,12),dummy=new T.Object3D();
+    instances.push(mesh);
     for(let i=0;i<12;i++) {dummy.position.z=i*.012;dummy.rotation.z=i*Math.PI/6;dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}
     rotor.add(mesh);rail(1.63,.018,layer?gold:ceramic,.12,rotor);
   }
@@ -114,11 +116,12 @@ export function createOptics({metal,darkMetal,gold,geometries,materials,textures
   const orbit=rail(1.12,.02,metal,.05,focal,Math.PI*1.4);orbit.rotation.z=.4;
   return {
     body,
-    update(open,time,weight) {
-      body.visible=open<.995;
-      body.position.z=-open*5;
+    dispose() { instances.forEach(mesh=>mesh.dispose()); },
+    update(open,time,weight,progress) {
+      body.visible=progress<.42;
+      body.position.z=-open*1.5;
       body.scale.setScalar(1+open*.55);
-      rotors.forEach((rotor,i)=>{rotor.rotation.z=(i?-.24:.1)+Math.sin(time*.3)*.075*weight*(i?-1:1)+open*(i?-1.5:1.5);});
+      rotors.forEach((rotor,i)=>{rotor.rotation.z=(i?-.24:.1)+Math.sin(time*.3)*.075*weight*(i?-1:1)+open*(i?-1.5:1.5);rotor.scale.setScalar(1+open*.65);});
       satellites.forEach((arm,i)=>{arm.position.x=Math.cos(i*Math.PI*2/3)*open*3;arm.position.y=Math.sin(i*Math.PI*2/3)*open*3;});
       focal.position.x=open*5;focal.position.y=open*2;focal.rotation.y=open*1.2;
       focal.rotation.z=Math.sin(time*.22)*.08*weight;

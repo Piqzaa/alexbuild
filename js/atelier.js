@@ -64,11 +64,11 @@ export function initHero() {
     if(progress>.12) loadArrival();
     // Reveal the sculpture within the first swipe, before entering the journey.
     const introOpacity=1-ease(progress/(mobile.matches ? .09 : .17));
-    const immersion=ease((progress-.12)/.18)*(1-ease((progress-.7)/.18));
+    const immersion=ease((progress-.12)/.18)*(1-ease((progress-.56)/.2));
     hero.style.setProperty('--intro',introOpacity.toFixed(4));
     hero.style.setProperty('--intro-y',`${-45*ease(progress/.2)}px`);
     hero.style.setProperty('--daylight',ease((progress-.24)/.62).toFixed(4));
-    hero.style.setProperty('--arrival',ease((progress-.69)/.18).toFixed(4));
+    hero.style.setProperty('--arrival',ease((progress-.56)/.2).toFixed(4));
     hero.style.setProperty('--immersion',immersion.toFixed(4));
     hero.style.setProperty('--environment-scale',(1+.07*immersion).toFixed(4));
     hero.style.setProperty('--progress',progress.toFixed(4));
@@ -76,7 +76,7 @@ export function initHero() {
     intro.setAttribute('aria-hidden',String(introOpacity<.1));
     footer.inert=mobile.matches && introOpacity<.1;
     footer.setAttribute('aria-hidden',String(footer.inert));
-    const starts=[.16,.62,.85], ends=[.31,.79,1.1];
+    const starts=[.16,.69,.85], ends=[.28,.81,1.1];
     chapters.forEach((chapter,i)=>{
       const enter=ease((progress-starts[i])/.065), leave=ease((progress-ends[i])/.05);
       const opacity=enter*(1-leave);
@@ -85,7 +85,7 @@ export function initHero() {
       chapter.style.visibility=opacity>.005?'visible':'hidden';
       chapter.inert=opacity<.5; chapter.setAttribute('aria-hidden',String(opacity<.5));
     });
-    index.textContent=String(progress<.16?1:progress<.62?2:progress<.85?3:4).padStart(2,'0');
+    index.textContent=String(progress<.16?1:progress<.69?2:progress<.85?3:4).padStart(2,'0');
     const interactive=!!scene && !motion.matches && progress<.1;
     slider.hidden=!interactive;
     if(!interactive && drag) {
@@ -106,7 +106,7 @@ export function initHero() {
     const token=++generation;
     if(motion.matches) return;
     try {
-      const {createAtelier}=await import('./hero-scene.js?v=20261007i');
+      const {createAtelier}=await import('./hero-scene.js?v=20261007n');
       if(motion.matches || token!==generation) return;
       scene=createAtelier(hero.querySelector('[data-atelier-canvas]'),requestPaint);
       hero.classList.add('has-scene'); measure();
